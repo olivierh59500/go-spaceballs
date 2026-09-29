@@ -9,13 +9,22 @@ import (
 const TileTicks = 143
 
 type TileModel struct {
-	Tiles   [][]byte
-	Cues    [9][3]int
-	Palette [2][8]uint16
+	Tiles        [][]byte
+	Cues         [][3]int
+	Palette      [2][8]uint16
+	Prime, Ticks int
 }
 
 func ReadTileModel(controller, packed []byte) (TileModel, error) {
 	var out TileModel
+	out.Prime, out.Ticks = 4, TileTicks
+	out.Cues = make([][3]int, 9)
+	cueBase, paletteBase := 0xb9e, 0x1052
+	if len(controller) > 0x208 && binary.BigEndian.Uint32(controller[0x1fc:]) == 0x368 {
+		out.Prime, out.Ticks = 0, 150
+		out.Cues = make([][3]int, 10)
+		cueBase, paletteBase = 0xb68, 0x1024
+	}
 	if len(controller) < 0x1092 {
 		return out, fmt.Errorf("source: truncated tile controller")
 	}
@@ -35,7 +44,7 @@ func ReadTileModel(controller, packed []byte) (TileModel, error) {
 	}
 	for row := range out.Cues {
 		for band := range out.Cues[row] {
-			address := int(binary.BigEndian.Uint32(controller[0xb9e+(row*3+band)*4:]))
+			address := int(binary.BigEndian.Uint32(controller[cueBase+(row*3+band)*4:]))
 			if address < 0xe8000 || (address-0xe8000)%3864 != 0 || (address-0xe8000)/3864 >= len(out.Tiles) {
 				return out, fmt.Errorf("source: tile cue pointer escapes decoded materials")
 			}
@@ -44,7 +53,7 @@ func ReadTileModel(controller, packed []byte) (TileModel, error) {
 	}
 	for palette := range out.Palette {
 		for i := range out.Palette[palette] {
-			out.Palette[palette][i] = binary.BigEndian.Uint16(controller[0x1052+palette*32+i*2:])
+			out.Palette[palette][i] = binary.BigEndian.Uint16(controller[paletteBase+palette*32+i*2:])
 		}
 	}
 	return out, nil
@@ -64,21 +73,30 @@ type TileClock struct {
 	Current, Display       int
 	positions              [3]int
 	model                  TileModel
+	groups                 [3][3]int
 }
 
 func NewTileClock(model TileModel) *TileClock {
-	c := &TileClock{model: model}
-	for range 4 {
+	c := &TileClock{model: model, Palette: -1}
+	for i := range c.groups {
+		for j := range c.groups[i] {
+			c.groups[i][j] = -1
+		}
+	}
+	for range model.Prime {
 		c.advance()
 	}
 	return c
 }
 
 func (c *TileClock) Step() {
-	if c.Tick >= TileTicks {
+	if c.Tick >= c.model.Ticks {
 		return
 	}
 	c.Tick++
+	if c.model.Prime == 0 && c.Tick <= 5 {
+		c.advance()
+	}
 	if c.Tick%5 == 0 {
 		c.advance()
 	}
@@ -88,18 +106,20 @@ func (c *TileClock) advance() {
 	c.Updates++
 	c.Palette = (c.Updates + 1) % 2
 	c.positions[0]++
-	if c.positions[0] >= 9 {
-		c.positions[0] -= 9
+	length := len(c.model.Cues)
+	if c.positions[0] >= length {
+		c.positions[0] -= length
 		c.positions[1]++
 		c.positions[2] += 2
 	}
-	c.positions[1] = (c.positions[1] + 1) % 9
-	c.positions[2] = (c.positions[2] + 1) % 9
-	for i := range c.Tiles {
-		c.Tiles[i] = c.model.Cues[c.positions[i]][i]
-	}
+	c.positions[1] = (c.positions[1] + 1) % length
+	c.positions[2] = (c.positions[2] + 1) % length
 	// The source initially advances twice, then retains its last working group.
 	// Preserve that transport rather than inventing a modulo-three rotation.
 	c.Display = c.Current
 	c.Current = min(2, c.Current+1)
+	for i := range c.Tiles {
+		c.groups[c.Current][i] = c.model.Cues[c.positions[i]][i]
+	}
+	c.Tiles = c.groups[c.Display]
 }

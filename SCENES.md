@@ -84,5 +84,5 @@ generated background grids match the original gradient execution.
 The final controller now retains its 94 cues, variable interrupt/cue spans,
 palette word arithmetic, blinking bitplane mode and white fade. All 1,716
 states include the pose in the displayed buffer and are independently
-verified. The stationary closing artwork is decoded. The complete director
-and title/credit/illustration transitions remain separate required work.
+verified. The stationary closing artwork is decoded. The continuous director now includes those title/credit/illustration handoffs,
+both animated loading programs, both music starts and the stationary final page.

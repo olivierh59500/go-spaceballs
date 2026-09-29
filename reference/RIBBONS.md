@@ -33,3 +33,6 @@ still need final raster/sequence comparison.
 GOWORK=off go run ./cmd/preview -bank ribbons -music
 GOWORK=off go run ./cmd/preview -bank ribbons -frame 420 -capture .local/ribbons
 ```
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

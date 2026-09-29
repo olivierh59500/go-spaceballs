@@ -48,3 +48,6 @@ Music is opened by DCK from the recovered `.mod` bytes. The standalone
 preview starts it at the converted effect's local main-module offset; whole
 production handoff/loading-delay alignment remains part of the director
 work. The original line/fill raster boundary comparison also remains open.
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

@@ -33,3 +33,6 @@ line/fill raster boundaries remain under verification.
 GOWORK=off go run ./cmd/preview -bank duet -music
 GOWORK=off go run ./cmd/preview -bank duet -frame 400 -capture .local/duet
 ```
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

@@ -50,3 +50,6 @@ GOWORK=off go run ./cmd/preview -bank opening-effect
 GOWORK=off go run ./cmd/preview -bank opening-effect -frame 230 -capture .local/opening
 GOWORK=off go run ./cmd/preview -bank hands -frame 20
 ```
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

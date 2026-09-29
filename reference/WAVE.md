@@ -47,3 +47,6 @@ GOWORK=off go run ./cmd/preview -bank wave -frame 360 -capture .local/wave
 The preview host now uses that registry; per-effect controls stay in their
 source adapters. The complete production director and remaining scenes are
 still in progress.
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

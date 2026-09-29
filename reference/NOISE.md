@@ -45,3 +45,6 @@ GOWORK=off go run ./cmd/preview -bank noise -frame 200 -capture .local/noise
 The original textures are rendered natively. No movie frames are embedded
 or sampled during playback. Full-production loading/cue alignment and the
 original line/fill boundary comparison remain part of the director work.
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

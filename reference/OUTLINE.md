@@ -35,3 +35,6 @@ alignment remain part of final verification.
 GOWORK=off go run ./cmd/preview -bank outline -music
 GOWORK=off go run ./cmd/preview -bank outline -frame 420 -capture .local/outline
 ```
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

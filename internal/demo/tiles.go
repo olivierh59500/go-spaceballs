@@ -21,7 +21,11 @@ type TileEffect struct {
 }
 
 func NewTileEffect() (*TileEffect, error) {
-	controller, err := assets.Files.ReadFile("raw/fourth-loader.bin")
+	return newTileEffect("fourth-loader")
+}
+
+func newTileEffect(name string) (*TileEffect, error) {
+	controller, err := assets.Files.ReadFile("raw/" + name + ".bin")
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +52,7 @@ func NewTileEffect() (*TileEffect, error) {
 }
 
 func (e *TileEffect) Update(f kit.Frame) error {
-	tick := max(0, min(source.TileTicks-1, int(math.Round(f.Time*FPS))))
+	tick := max(0, min(e.model.Ticks-1, int(math.Round(f.Time*FPS))))
 	if e.clock.Tick > tick+1 {
 		e.clock = source.NewTileClock(e.model)
 	}
@@ -60,8 +64,14 @@ func (e *TileEffect) Update(f kit.Frame) error {
 
 func (e *TileEffect) Draw(dst *ebiten.Image) {
 	dst.Fill(color.Black)
+	if e.clock.Palette < 0 {
+		return
+	}
 	dst.SubImage(image.Rect(0, 0, Width, 280)).(*ebiten.Image).Fill(source.RGB12(e.model.Palette[e.clock.Palette][0]))
 	for band, tile := range e.clock.Tiles {
+		if tile < 0 {
+			continue
+		}
 		var op ebiten.DrawImageOptions
 		op.GeoM.Translate(64, float64(68+band*46))
 		dst.DrawImage(e.images[e.clock.Palette][tile], &op)

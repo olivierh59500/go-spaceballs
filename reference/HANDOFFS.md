@@ -5,7 +5,10 @@ at `$401fa`, loaded from side track 79. It selects the bootstrap copper
 list, installs its own VBL handler and reads the following contour-effect
 block. Its wait compares a new counter at `$40cb6` with 150. This is a
 separate minimum three-second interval, not the first effect's counter.
-It explains the extra interval before the retained-mask trails.
+It explains the extra interval before the retained-mask trails. Its native
+VOTE-card composition is now restored through the shared tile renderer: ten
+cue rows, no startup priming and five early VBL copy steps. All 150 source
+transport states and displayed-bitmap hashes are verified.
 
 After the seven-second textured passage, the side-track 109 program enters
 at `$501fa`. It is **another animated composition**, not a blank hold.
@@ -21,3 +24,6 @@ waits. They are local validation offsets, not proof that all disk reads and
 decompression handoffs match the recording. The final director must retain
 the actual composition of every loading passage and verify absolute music
 alignment through the whole production.
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

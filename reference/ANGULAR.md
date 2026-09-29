@@ -36,3 +36,6 @@ in the uninterrupted production remains part of director/music alignment.
 The next source director introduces different coordinate and edge programs;
 those must be recovered separately rather than treating all later banks as
 identical filled silhouettes.
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

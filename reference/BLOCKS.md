@@ -42,3 +42,6 @@ The precise copper color-write pixel boundaries also need final comparison.
 GOWORK=off go run ./cmd/preview -bank blocks-effect -music
 GOWORK=off go run ./cmd/preview -bank blocks-effect -frame 120 -capture .local/blocks
 ```
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.

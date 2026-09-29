@@ -38,3 +38,6 @@ GOWORK=off go run ./cmd/preview -bank closing
 The uninterrupted director still needs the title/credit and illustration
 handoffs, both music starts and the final closing-image fade. Individual
 effect/controller tests alone do not prove whole-production alignment.
+
+The [continuous native director](DIRECTOR.md) now assembles this unit with
+the remaining source compositions, pages, loading programs and music handoffs.
