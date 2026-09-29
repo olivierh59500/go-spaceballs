@@ -241,3 +241,8 @@ func (g *ProductionGame) Update() error {
 func (g *ProductionGame) Draw(dst *ebiten.Image)   { g.program.Draw(dst) }
 func (*ProductionGame) Layout(int, int) (int, int) { return Width, Height }
 func (g *ProductionGame) Close()                   { g.program.Close() }
+
+// Position identifies the active composition on the shared 50 Hz clock.
+func (g *ProductionGame) Position() (string, int) {
+	return g.program.current.Name, g.start + g.tick
+}
