@@ -1,6 +1,6 @@
 # Disk transfer and picture recovery
 
-The supplied DMS has an RLE banner followed by eighty HEAVY2 tracks. Local
+The supplied DMS has an RLE banner followed by eighty HEAVY2 cylinders. Local
 xDMS verifies the archive and recovers a 901,120-byte image. The boot identifies
 this supplied release as a 1 MB chip-memory version; that identity is retained.
 It has a custom raw-track loader rather than a usable filesystem directory.
@@ -8,7 +8,8 @@ It has a custom raw-track loader rather than a usable filesystem directory.
 The boot copies disk bytes `0x34..0x2c6` into memory `0xc0`, enters supervisor
 mode, reads tracks 0–1 to `0x3ec00`, and jumps to `0x3f000` (disk `0x400`).
 Following the copied code avoids confusing original disk and runtime addresses.
-Transfers use eleven sectors per side and a 5,632-byte track stride.
+Each DMS cylinder restores both sides. The resident addresses 160 physical
+side tracks, with eleven sectors per side and a 5,632-byte transfer stride.
 [`assets/raw/transfers.json`](../assets/raw/transfers.json) records the verified
 initial transfers and the later picture/credit stages. Subsequent effect-loader
 transfers still need to be mapped before claiming a complete runtime image.
