@@ -1,0 +1,106 @@
+[
+  {
+    "Name": "resident",
+    "Track": 0,
+    "Tracks": 2,
+    "Address": 257024,
+    "Bytes": 11264,
+    "SHA256": "1a642933693d9fd0419c04fc766797d63e3c8c9337811330e9de3c1345e3c127"
+  },
+  {
+    "Name": "intro",
+    "Track": 2,
+    "Tracks": 3,
+    "Address": 524288,
+    "Bytes": 16896,
+    "SHA256": "a0a7a1b5b679301556695fdfb2221d0c90dfd9ae25078067f54b96e126b12b07"
+  },
+  {
+    "Name": "loader-music",
+    "Track": 5,
+    "Tracks": 7,
+    "Address": 264678,
+    "Bytes": 39424,
+    "SHA256": "71afa70db07b7c9435a6b694055483c2b5162c817eeb0344f840cc8ee0836fd9"
+  },
+  {
+    "Name": "first-animation",
+    "Track": 12,
+    "Tracks": 6,
+    "Address": 540158,
+    "Bytes": 33792,
+    "SHA256": "cd350b4fcbead6061d6cb33ad44871130bcfcda963c0268a34dd85d274ac5b95"
+  },
+  {
+    "Name": "pattern",
+    "Track": 18,
+    "Tracks": 3,
+    "Address": 655360,
+    "Bytes": 16896,
+    "SHA256": "03ff23c549cc5f056433146779e876e1bcfdef07e58c2a90a61a32fcff131e6b"
+  },
+  {
+    "Name": "director",
+    "Track": 21,
+    "Tracks": 1,
+    "Address": 335872,
+    "Bytes": 5632,
+    "SHA256": "2159b472f23fc101754fb7221210c39de9f216d10786d65129dd8c506ba993d4"
+  },
+  {
+    "Name": "picture",
+    "Track": 22,
+    "Tracks": 2,
+    "Address": 315392,
+    "Bytes": 11264,
+    "SHA256": "081c93022ab824875f936a0f50c21b06efc71f89120a53e3ffe02f809bd4a798"
+  },
+  {
+    "Name": "main-music-head",
+    "Track": 24,
+    "Tracks": 36,
+    "Address": 4096,
+    "Bytes": 202752,
+    "SHA256": "a90e082c1db3953348551c11f362f8704e671f1558b3974fe5a0d7253114531b"
+  },
+  {
+    "Name": "main-music-tail",
+    "Track": 60,
+    "Tracks": 6,
+    "Address": 206848,
+    "Bytes": 33792,
+    "SHA256": "3a0cb1aab6887c6279caf0a0700adb14119f51c5c6c1ad0cd297a57fda475736"
+  },
+  {
+    "Name": "credits-packed",
+    "Track": 66,
+    "Tracks": 4,
+    "Address": 786432,
+    "Bytes": 22528,
+    "SHA256": "857aab73dbedc95de1a9060697862f1dd2165d1a77edd79fe67ab328f65bbadd"
+  },
+  {
+    "Name": "second-director",
+    "Track": 70,
+    "Tracks": 1,
+    "Address": 253952,
+    "Bytes": 5632,
+    "SHA256": "b61ccc454f70d47d08c77846785d119ba83c83b9724ccd6cd107db3627188742"
+  },
+  {
+    "Name": "effects-director",
+    "Track": 71,
+    "Tracks": 1,
+    "Address": 327680,
+    "Bytes": 5632,
+    "SHA256": "0baff81b49ca21d922d21c7a997d1337cd007a228b3c2aa3df17d814825e8d3d"
+  },
+  {
+    "Name": "later-animation",
+    "Track": 72,
+    "Tracks": 7,
+    "Address": 720896,
+    "Bytes": 39424,
+    "SHA256": "8fce9d75602f03ff5d5c47bdbdd7883469821361f9700ab004678d88a97c41db"
+  }
+]
