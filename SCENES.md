@@ -75,3 +75,8 @@ flashes.
 The side-track 139 outline/body unit now retains its two 256-frame banks,
 51 cues, trail-pointer rules and final one-plane white exit. Its 1,041
 controller states match an independent execution of the original program.
+
+The side-track 146 director returns to block gradients with six banks of
+fine contours. Its disabled fill, one-row outline sampling, mirror/cue
+program and 1,385 controller states are now retained natively. All 693
+generated background grids match the original gradient execution.

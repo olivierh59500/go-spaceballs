@@ -2,6 +2,7 @@ package demo
 
 import (
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/olivierh59500/democonstructionkit/render"
@@ -47,6 +48,41 @@ func (r *maskRing) close() {
 		plane.Deallocate()
 	}
 	r.white.Deallocate()
+}
+
+func (r *maskRing) prepareOutline(index int, frame []source.Polygon, mirror bool) {
+	plane := r.planes[index]
+	plane.Clear()
+	r.batch.Begin(plane, r.white)
+	point := func(p source.Point) ebiten.Vertex {
+		x := int(p.X)
+		if mirror {
+			x = 256 - x
+		}
+		return render.Vertex(float64(x*351/256), float64(int(p.Y)*289/204), 0, 0, color.White)
+	}
+	for _, polygon := range frame {
+		for i, p := range polygon.Points {
+			a, b := point(p), point(polygon.Points[(i+1)%len(polygon.Points)])
+			dx, dy := float64(b.DstX-a.DstX), float64(b.DstY-a.DstY)
+			length := math.Hypot(dx, dy)
+			if length == 0 || dy == 0 {
+				continue
+			}
+			nx, ny := float32(-dy/length/2), float32(dx/length/2)
+			q := [4]ebiten.Vertex{a, b, b, a}
+			q[0].DstX += nx
+			q[0].DstY += ny
+			q[1].DstX += nx
+			q[1].DstY += ny
+			q[2].DstX -= nx
+			q[2].DstY -= ny
+			q[3].DstX -= nx
+			q[3].DstY -= ny
+			r.batch.Quad(q)
+		}
+	}
+	r.batch.Flush()
 }
 
 // prepareSliced preserves the source's edge-endpoint Y exchange in its second

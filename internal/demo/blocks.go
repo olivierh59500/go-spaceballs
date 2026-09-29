@@ -14,17 +14,18 @@ import (
 // BlocksEffect shares the contour/ring-mask renderer with the neighboring
 // scenes, while retaining the authored corner palettes and two-plane shadow.
 type BlocksEffect struct {
-	model      source.BlockModel
-	clock      *source.BlocksClock
-	animation  source.Animation
-	masks      *maskRing
-	palette    *ebiten.Image
-	paletteSub *ebiten.Image
-	pixels     []byte
-	shader     *ebiten.Shader
-	options    ebiten.DrawRectShaderOptions
-	closed     bool
-	dirty      bool
+	model       source.BlockModel
+	clock       *source.BlocksClock
+	animation   source.Animation
+	masks       *maskRing
+	palette     *ebiten.Image
+	paletteSub  *ebiten.Image
+	pixels      []byte
+	shader      *ebiten.Shader
+	options     ebiten.DrawRectShaderOptions
+	shadowShift []float32
+	closed      bool
+	dirty       bool
 }
 
 func NewBlocksEffect() (*BlocksEffect, error) {
@@ -40,16 +41,25 @@ func NewBlocksEffect() (*BlocksEffect, error) {
 	if err != nil {
 		return nil, err
 	}
+	e, err := newBlocksRenderer()
+	if err != nil {
+		return nil, err
+	}
+	e.model, e.clock, e.animation = model, source.NewBlocksClock(model), animation
+	return e, nil
+}
+
+func newBlocksRenderer() (*BlocksEffect, error) {
 	shader, err := ebiten.NewShader([]byte(blocksShader))
 	if err != nil {
 		return nil, err
 	}
-	e := &BlocksEffect{model: model, clock: source.NewBlocksClock(model), animation: animation,
-		shader: shader, pixels: make([]byte, 30*17*4), dirty: true}
+	e := &BlocksEffect{shader: shader, pixels: make([]byte, 30*17*4), dirty: true, shadowShift: make([]float32, 2)}
 	e.masks = newMaskRing()
 	e.palette = render.NewSurface(Width, Height)
 	e.paletteSub = e.palette.SubImage(image.Rect(0, 0, 30, 17)).(*ebiten.Image)
 	e.options.Images[2] = e.palette
+	e.options.Uniforms = map[string]any{"ShadowShift": e.shadowShift}
 	return e, nil
 }
 
@@ -73,10 +83,14 @@ func (e *BlocksEffect) SetTick(tick int) {
 }
 
 func (e *BlocksEffect) Draw(dst *ebiten.Image) {
+	e.drawGrid(dst, e.clock.Background, e.clock.Shadow, e.clock.Display)
+}
+
+func (e *BlocksEffect) drawGrid(dst *ebiten.Image, background, shadow [17][15]uint16, display [2]int) {
 	if e.dirty {
 		for row := 0; row < 17; row++ {
 			for col := 0; col < 15; col++ {
-				for plane, word := range [2]uint16{e.clock.Background[row][col], e.clock.Shadow[row][col]} {
+				for plane, word := range [2]uint16{background[row][col], shadow[row][col]} {
 					at := (row*30 + col + plane*15) * 4
 					c := source.RGB12(word)
 					e.pixels[at], e.pixels[at+1], e.pixels[at+2], e.pixels[at+3] = c.R, c.G, c.B, 255
@@ -87,7 +101,7 @@ func (e *BlocksEffect) Draw(dst *ebiten.Image) {
 		e.paletteSub.WritePixels(e.pixels)
 		e.dirty = false
 	}
-	e.options.Images[0], e.options.Images[1] = e.masks.planes[e.clock.Display[0]], e.masks.planes[e.clock.Display[1]]
+	e.options.Images[0], e.options.Images[1] = e.masks.planes[display[0]], e.masks.planes[display[1]]
 	dst.DrawRectShader(Width, Height, e.shader, &e.options)
 }
 
@@ -104,10 +118,12 @@ func (e *BlocksEffect) Close() error {
 const blocksShader = `//kage:unit pixels
 package main
 
+var ShadowShift vec2
+
 func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
 	p := texCoord - imageSrc0Origin()
 	body := step(0.5, imageSrc0At(texCoord).a)
-	shadow := step(0.5, imageSrc1At(texCoord).a)
+	shadow := step(0.5, imageSrc1At(texCoord + ShadowShift).a)
 	if body > 0.5 {
 		return vec4(0, 0, 0, 1)
 	}

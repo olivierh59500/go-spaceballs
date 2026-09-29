@@ -45,6 +45,9 @@ func NewEffect(name string) (kit.Effect, int, error) {
 	case "duet":
 		effect, err = NewDuetEffect()
 		ticks = source.DuetTicks
+	case "outline":
+		effect, err = NewOutlineEffect()
+		ticks = source.OutlineTicks
 	}
 	if err != nil {
 		return nil, 0, err
