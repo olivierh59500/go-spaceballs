@@ -38,6 +38,14 @@ The four 37,356-byte title/credit pictures begin at source-bank offsets
 44-byte rows and 12,452-byte plane spans. The director stores the source
 RGB12 palette in its copper register pairs.
 
-The dragon and later patterns use separate packed regions. They must be decoded
-and verified independently; the first-title checksum establishes only that
-specific original unpacking path.
+The dragon uses a separate 81,920-byte packed region: four 640 by 256 hires
+planes. Its copper pointers begin four cleared bytes before the decoded data.
+The Go preview retains that offset and its sixteen RGB12 colors, displaying
+hires pixels at half width in the low-resolution canvas. Its illustration and
+Spaceballs heading are now recovered from the original bank.
+
+An inventory finds 32 plausible packed regions across the disk. Thirty-one
+currently decode through the verified reader. One region beginning at disk
+`0x1ca80` does not; its original call path and packed-tail handling require
+independent CPU checks. The first-title checksum establishes only that
+specific original unpacking path, not blanket fidelity of every packed bank.

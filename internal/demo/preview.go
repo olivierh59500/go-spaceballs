@@ -2,7 +2,6 @@
 package demo
 
 import (
-	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -21,10 +20,21 @@ type Preview struct {
 	picture   *ebiten.Image
 	batch     *render.Batch
 	hands     bool
+	hires     bool
 }
 
 func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 	p := &Preview{frame: frame, batch: render.NewBatch(4096)}
+	if bank == "dragon" {
+		data, _ := assets.Files.ReadFile("raw/credits-packed.bin")
+		director, _ := assets.Files.ReadFile("raw/second-director.bin")
+		pixels, err := source.Dragon(data, director)
+		if err != nil {
+			return nil, err
+		}
+		p.picture, p.hires = ebiten.NewImageFromImage(pixels), true
+		return p, nil
+	}
 	if bank == "picture" {
 		data, _ := assets.Files.ReadFile("raw/pattern.bin")
 		director, _ := assets.Files.ReadFile("raw/director.bin")
@@ -35,18 +45,19 @@ func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 		p.picture = ebiten.NewImageFromImage(pixels)
 		return p, nil
 	}
-	if bank != "intro" && bank != "first-animation" {
-		return nil, fmt.Errorf("preview: unknown bank %q", bank)
+	name := bank
+	if bank == "intro" {
+		name = "opening"
 	}
-	data, err := assets.Files.ReadFile("raw/" + bank + ".bin")
+	if bank == "first-animation" {
+		name = "first"
+	}
+	var err error
+	p.animation, err = source.LoadAnimation(assets.Files, name)
 	if err != nil {
 		return nil, err
 	}
-	p.animation, err = source.ReadAnimation(data)
-	if err != nil {
-		return nil, err
-	}
-	p.hands = bank == "intro"
+	p.hands = name == "opening"
 	p.white = ebiten.NewImage(1, 1)
 	p.white.Fill(color.White)
 	p.batch.Options.FillRule = ebiten.FillRuleEvenOdd
@@ -58,7 +69,12 @@ func (p *Preview) Update() error { p.frame++; return nil }
 func (p *Preview) Draw(dst *ebiten.Image) {
 	dst.Fill(source.RGB12(0x102))
 	if p.picture != nil {
-		dst.DrawImage(p.picture, nil)
+		var op ebiten.DrawImageOptions
+		if p.hires {
+			op.GeoM.Scale(0.5, 1)
+			op.GeoM.Translate(16, 0)
+		}
+		dst.DrawImage(p.picture, &op)
 		return
 	}
 	frame := p.animation.Frames[(p.frame%len(p.animation.Frames)+len(p.animation.Frames))%len(p.animation.Frames)]

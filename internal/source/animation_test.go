@@ -9,6 +9,32 @@ import (
 	"github.com/olivierh59500/go-spaceballs/assets"
 )
 
+func TestCompleteRecoveredAnimationInventoryHasBoundedContours(t *testing.T) {
+	total := 0
+	for _, spec := range AnimationBanks {
+		bank, err := LoadAnimation(assets.Files, spec.Name)
+		if err != nil {
+			t.Fatal(spec.Name, err)
+		}
+		total += len(bank.Frames)
+		for frame, polygons := range bank.Frames {
+			for _, polygon := range polygons {
+				if polygon.Mask > 15 {
+					t.Fatal("plane mask escapes source range", spec.Name, frame)
+				}
+				for _, p := range polygon.Points {
+					if p.X < -512 || p.X > 512 || p.Y < -512 || p.Y > 512 {
+						t.Fatal("decoded contour escapes byte-coordinate domain", spec.Name, frame, p)
+					}
+				}
+			}
+		}
+	}
+	if len(AnimationBanks) != 32 || total < 3000 {
+		t.Fatal("incomplete recovered inventory", len(AnimationBanks), total)
+	}
+}
+
 // Fixtures execute the original morph reader, including unequal vertex counts.
 func TestMorphContoursMatchAllOriginalCPUCoordinates(t *testing.T) {
 	banks := make(map[string]Animation)

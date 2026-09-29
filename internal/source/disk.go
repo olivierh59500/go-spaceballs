@@ -23,6 +23,14 @@ var Regions = []Region{
 	{"second-director", 70, 1, 0x3e000}, {"effects-director", 71, 1, 0x50000},
 	{"later-animation", 72, 7, 0xb0000}, {"main-effects", 79, 1, 0x40000},
 	{"second-animation", 80, 5, 0xc0000},
+	{"first-effects", 85, 3, 0x45000}, {"third-animation", 91, 10, 0x6cb10},
+	{"second-effects", 101, 2, 0x50000}, {"background-patterns", 103, 5, 0xa0000},
+	{"third-effects", 108, 1, 0x40000}, {"fourth-loader", 109, 1, 0x50000},
+	{"fourth-effects", 110, 1, 0x45000}, {"fourth-animation", 111, 3, 0xb4080},
+	{"fifth-effects", 114, 4, 0x50000}, {"fifth-animation", 118, 9, 0x6cb10},
+	{"sixth-effects", 127, 7, 0x40000}, {"seventh-effects", 134, 5, 0x4c000},
+	{"eighth-effects", 139, 7, 0x40000}, {"ninth-effects", 146, 8, 0x4f000},
+	{"final-animation", 154, 6, 0x43000}, {"final-effects", 88, 2, 0x40000},
 }
 
 func ValidateDisk(data []byte) error {

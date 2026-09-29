@@ -118,5 +118,133 @@
     "Address": 786432,
     "Bytes": 28160,
     "SHA256": "9651e40abee055c4773e31acf80043a9a4f8041fbf55359eb70a40a9141ca07d"
+  },
+  {
+    "Name": "first-effects",
+    "Track": 85,
+    "Tracks": 3,
+    "Address": 282624,
+    "Bytes": 16896,
+    "SHA256": "1aaffd0d259d750b4db6d456cb6d087668941c01406c23bdef51a5ee42e98c40"
+  },
+  {
+    "Name": "third-animation",
+    "Track": 91,
+    "Tracks": 10,
+    "Address": 445200,
+    "Bytes": 56320,
+    "SHA256": "71a681efc2b0e76f391a20173b2027534686658260cdb92ec64b4df39131af26"
+  },
+  {
+    "Name": "second-effects",
+    "Track": 101,
+    "Tracks": 2,
+    "Address": 327680,
+    "Bytes": 11264,
+    "SHA256": "39d75e81026e7b968f09bf8a4bc0b40232192d8fc72d72ff343972f7d4c25069"
+  },
+  {
+    "Name": "background-patterns",
+    "Track": 103,
+    "Tracks": 5,
+    "Address": 655360,
+    "Bytes": 28160,
+    "SHA256": "ea1a570a0cafd27c40b7b4aca9bc9dcc8320aed2dd029db49def4363ed2f76af"
+  },
+  {
+    "Name": "third-effects",
+    "Track": 108,
+    "Tracks": 1,
+    "Address": 262144,
+    "Bytes": 5632,
+    "SHA256": "f6559af1ccb717eb05ed839c45cacbfaab801c0bb2b43e12f4083e4821e7f975"
+  },
+  {
+    "Name": "fourth-loader",
+    "Track": 109,
+    "Tracks": 1,
+    "Address": 327680,
+    "Bytes": 5632,
+    "SHA256": "735c0b575f60d854ecb6e0f0fa2423c79f2e2d31b8369de4b3070f0ec21b8acd"
+  },
+  {
+    "Name": "fourth-effects",
+    "Track": 110,
+    "Tracks": 1,
+    "Address": 282624,
+    "Bytes": 5632,
+    "SHA256": "13c40b31c8e0dbe7e5a0c4d6b732930b97613f4096a45084429493302601a051"
+  },
+  {
+    "Name": "fourth-animation",
+    "Track": 111,
+    "Tracks": 3,
+    "Address": 737408,
+    "Bytes": 16896,
+    "SHA256": "28f85bc6e6e6b1643bc353d08b9893efc99279cf47f58de0460575490bd6ae24"
+  },
+  {
+    "Name": "fifth-effects",
+    "Track": 114,
+    "Tracks": 4,
+    "Address": 327680,
+    "Bytes": 22528,
+    "SHA256": "34c0df2c6d8093b6d9fc2f7f485c0ae5124ff16fc00c102c3d453b1f1c3bddf5"
+  },
+  {
+    "Name": "fifth-animation",
+    "Track": 118,
+    "Tracks": 9,
+    "Address": 445200,
+    "Bytes": 50688,
+    "SHA256": "abf4a093c1d90ebb36309c88bb37288db20c9c4a163eb68283bd37df9501f4ab"
+  },
+  {
+    "Name": "sixth-effects",
+    "Track": 127,
+    "Tracks": 7,
+    "Address": 262144,
+    "Bytes": 39424,
+    "SHA256": "4c27fd41ccec09106af177fa32339d06e96832cd0eafa015c8509a159e775ef1"
+  },
+  {
+    "Name": "seventh-effects",
+    "Track": 134,
+    "Tracks": 5,
+    "Address": 311296,
+    "Bytes": 28160,
+    "SHA256": "d1c4581bc930b6ef9a555170a0eacfdc2e404cb7a00d77180998a06ee56ed94d"
+  },
+  {
+    "Name": "eighth-effects",
+    "Track": 139,
+    "Tracks": 7,
+    "Address": 262144,
+    "Bytes": 39424,
+    "SHA256": "3920a1a84d0bdb1135c1885efb966164f8a32b0905943ace1bab7290e06053cd"
+  },
+  {
+    "Name": "ninth-effects",
+    "Track": 146,
+    "Tracks": 8,
+    "Address": 323584,
+    "Bytes": 45056,
+    "SHA256": "db75c0b5bf0c56c506a0647f8dd3a168a4368023ce04bf45fdd9c09c11768cec"
+  },
+  {
+    "Name": "final-animation",
+    "Track": 154,
+    "Tracks": 6,
+    "Address": 274432,
+    "Bytes": 33792,
+    "SHA256": "77f52c17e9555edc8a3ede36a07325d6ca6876f6934d233f59f9c2b90e7b6895"
+  },
+  {
+    "Name": "final-effects",
+    "Track": 88,
+    "Tracks": 2,
+    "Address": 262144,
+    "Bytes": 11264,
+    "SHA256": "db438d3ef2fb0e9206e24cd0df4943c410814374e1643e7e069a1668afb3ab96"
   }
 ]

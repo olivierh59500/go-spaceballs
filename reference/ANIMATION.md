@@ -20,3 +20,17 @@ bitplane parity/fill convention, palette and placement clocks.
 These verified banks are reusable source poses, not video-derived silhouettes.
 Additional animation banks are loaded by the later effect directors and remain
 to be decoded before the full production can be reconstructed.
+
+## Recovered bank inventory
+
+Following the complete loader chain now recovers 32 distinct byte-contour
+tables. `internal/source/banks.go` records their file offsets and frame counts.
+Every listed table parses its full pointer set and morph payloads with bounded
+coordinates. The names describe the inventory; their final scene roles,
+source playback offsets and ordering still require choreography verification.
+
+Several small tables are embedded in effect-code banks. Later bodies are loaded
+to the same memory addresses as earlier ones, so they cannot be interpreted
+through one static memory image. The recovered transfer order retains those
+overlays, including the final reload of the effect code from side tracks 88–89.
+The source code finishes on a stationary picture after the final animation.

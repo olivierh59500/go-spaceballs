@@ -26,10 +26,11 @@
     "Extracted": true,
     "ADFBytes": 901120,
     "ADFSHA256": "6c60b98bf206921ceea76c7b4be25ad95c8fd81088a493916921ef70ab0cab9f",
-    "Tracks": 80,
+    "Tracks": 160,
     "CompressedTracks": 81,
-    "Compression": "HEAVY2 with an RLE banner",
-    "OriginalDiskLabel": "SPACEBALLS STATE OF THE ART 1MB CHIPMEM VERSION"
+    "Compression": "HEAVY2 cylinders with an RLE banner",
+    "OriginalDiskLabel": "SPACEBALLS STATE OF THE ART 1MB CHIPMEM VERSION",
+    "Cylinders": 80
   },
   "IndependentModulePresent": false,
   "AnalysisTool": {

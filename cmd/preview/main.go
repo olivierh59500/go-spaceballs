@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	bank := flag.String("bank", "intro", "source bank: intro, first-animation, or picture")
+	bank := flag.String("bank", "intro", "source bank: intro, first-animation, picture, or dragon")
 	frame := flag.Int("frame", 0, "initial source frame")
 	offset := flag.Int("picture-offset", 0, "packed picture offset within its source bank")
 	directory := flag.String("capture", "", "write one deterministic native asset screenshot")
