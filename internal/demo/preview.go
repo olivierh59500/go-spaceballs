@@ -21,10 +21,16 @@ type Preview struct {
 	batch     *render.Batch
 	hands     bool
 	hires     bool
+	pattern   *PatternEffect
 }
 
 func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
-	p := &Preview{frame: frame, batch: render.NewBatch(4096)}
+	p := &Preview{frame: frame - 1, batch: render.NewBatch(4096)}
+	if bank == "pattern" {
+		var err error
+		p.pattern, err = NewPatternEffect()
+		return p, err
+	}
 	if bank == "dragon" {
 		data, _ := assets.Files.ReadFile("raw/credits-packed.bin")
 		director, _ := assets.Files.ReadFile("raw/second-director.bin")
@@ -67,6 +73,11 @@ func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 func (p *Preview) Update() error { p.frame++; return nil }
 
 func (p *Preview) Draw(dst *ebiten.Image) {
+	if p.pattern != nil {
+		p.pattern.SetTick((p.frame%source.PatternTicks + source.PatternTicks) % source.PatternTicks)
+		p.pattern.Draw(dst)
+		return
+	}
 	dst.Fill(source.RGB12(0x102))
 	if p.picture != nil {
 		var op ebiten.DrawImageOptions
@@ -109,6 +120,9 @@ func (p *Preview) Draw(dst *ebiten.Image) {
 func (*Preview) Layout(int, int) (int, int) { return Width, Height }
 
 func (p *Preview) Close() {
+	if p.pattern != nil {
+		_ = p.pattern.Close()
+	}
 	if p.white != nil {
 		p.white.Deallocate()
 	}
