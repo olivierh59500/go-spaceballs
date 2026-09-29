@@ -25,12 +25,18 @@ type Preview struct {
 	opening   *OpeningEffect
 	trails    *TrailsEffect
 	blocks    *BlocksEffect
+	noise     *NoiseEffect
 	limit     int
 	updates   int
 }
 
 func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 	p := &Preview{frame: frame, batch: render.NewBatch(4096)}
+	if bank == "noise" {
+		var err error
+		p.noise, err = NewNoiseEffect()
+		return p, err
+	}
 	if bank == "blocks-effect" {
 		var err error
 		p.blocks, err = NewBlocksEffect()
@@ -103,6 +109,11 @@ func (p *Preview) Update() error {
 }
 
 func (p *Preview) Draw(dst *ebiten.Image) {
+	if p.noise != nil {
+		p.noise.SetTick((p.frame%source.NoiseTicks + source.NoiseTicks) % source.NoiseTicks)
+		p.noise.Draw(dst)
+		return
+	}
 	if p.blocks != nil {
 		p.blocks.SetTick((p.frame%source.BlocksTicks + source.BlocksTicks) % source.BlocksTicks)
 		p.blocks.Draw(dst)
@@ -165,6 +176,9 @@ func (p *Preview) Draw(dst *ebiten.Image) {
 func (*Preview) Layout(int, int) (int, int) { return Width, Height }
 
 func (p *Preview) Close() {
+	if p.noise != nil {
+		_ = p.noise.Close()
+	}
 	if p.blocks != nil {
 		_ = p.blocks.Close()
 	}

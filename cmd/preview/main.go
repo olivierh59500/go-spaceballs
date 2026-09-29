@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	bank := flag.String("bank", "opening-effect", "source bank or composed effect: opening-effect, hands, intro, first-animation, picture, dragon, pattern, trails, blocks-effect")
+	bank := flag.String("bank", "opening-effect", "source bank or composed effect: opening-effect, hands, intro, first-animation, picture, dragon, pattern, trails, blocks-effect, noise")
 	frame := flag.Int("frame", 0, "initial source frame")
 	offset := flag.Int("picture-offset", 0, "packed picture offset within its source bank")
 	directory := flag.String("capture", "", "write one deterministic native asset screenshot")

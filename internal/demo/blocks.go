@@ -2,7 +2,6 @@ package demo
 
 import (
 	"image"
-	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -18,13 +17,11 @@ type BlocksEffect struct {
 	model      source.BlockModel
 	clock      *source.BlocksClock
 	animation  source.Animation
-	planes     [6]*ebiten.Image
-	white      *ebiten.Image
+	masks      *maskRing
 	palette    *ebiten.Image
 	paletteSub *ebiten.Image
 	pixels     []byte
 	shader     *ebiten.Shader
-	batch      *render.Batch
 	options    ebiten.DrawRectShaderOptions
 	closed     bool
 	dirty      bool
@@ -48,15 +45,10 @@ func NewBlocksEffect() (*BlocksEffect, error) {
 		return nil, err
 	}
 	e := &BlocksEffect{model: model, clock: source.NewBlocksClock(model), animation: animation,
-		shader: shader, pixels: make([]byte, 30*17*4), batch: render.NewBatch(4096), dirty: true}
-	for i := range e.planes {
-		e.planes[i] = render.NewSurface(Width, Height)
-	}
-	e.white = ebiten.NewImage(1, 1)
-	e.white.Fill(color.White)
+		shader: shader, pixels: make([]byte, 30*17*4), dirty: true}
+	e.masks = newMaskRing()
 	e.palette = render.NewSurface(Width, Height)
 	e.paletteSub = e.palette.SubImage(image.Rect(0, 0, 30, 17)).(*ebiten.Image)
-	e.batch.Options.FillRule = ebiten.FillRuleEvenOdd
 	e.options.Images[2] = e.palette
 	return e, nil
 }
@@ -70,20 +62,12 @@ func (e *BlocksEffect) SetTick(tick int) {
 	tick = max(0, min(tick, source.BlocksTicks-1))
 	if e.clock.Tick > tick+1 {
 		e.clock = source.NewBlocksClock(e.model)
-		for _, plane := range e.planes {
-			plane.Clear()
-		}
+		e.masks.clear()
 	}
 	for e.clock.Tick <= tick {
 		if e.clock.Step() {
 			e.dirty = true
-			plane := e.planes[e.clock.Current]
-			plane.Clear()
-			e.batch.Begin(plane, e.white)
-			for _, polygon := range e.animation.Frames[e.clock.Frame] {
-				filledContour(e.batch, polygon.Points, false)
-			}
-			e.batch.Flush()
+			e.masks.prepare(e.clock.Current, e.animation.Frames[e.clock.Frame], false)
 		}
 	}
 }
@@ -103,17 +87,14 @@ func (e *BlocksEffect) Draw(dst *ebiten.Image) {
 		e.paletteSub.WritePixels(e.pixels)
 		e.dirty = false
 	}
-	e.options.Images[0], e.options.Images[1] = e.planes[e.clock.Display[0]], e.planes[e.clock.Display[1]]
+	e.options.Images[0], e.options.Images[1] = e.masks.planes[e.clock.Display[0]], e.masks.planes[e.clock.Display[1]]
 	dst.DrawRectShader(Width, Height, e.shader, &e.options)
 }
 
 func (e *BlocksEffect) Close() error {
 	if !e.closed {
-		for _, plane := range e.planes {
-			plane.Deallocate()
-		}
+		e.masks.close()
 		e.palette.Deallocate()
-		e.white.Deallocate()
 		e.shader.Deallocate()
 		e.closed = true
 	}
@@ -126,7 +107,7 @@ package main
 func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
 	p := texCoord - imageSrc0Origin()
 	body := step(0.5, imageSrc0At(texCoord).a)
-	shadow := step(0.5, imageSrc1At(imageSrc1Origin() + p).a)
+	shadow := step(0.5, imageSrc1At(texCoord).a)
 	if body > 0.5 {
 		return vec4(0, 0, 0, 1)
 	}
@@ -139,6 +120,6 @@ func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
 		row = min(16, row)
 	}
 	col := min(14, max(0, floor((p.x + 8)/24)))
-	return imageSrc2At(imageSrc2Origin() + vec2(col + shadow*15, row) + vec2(0.5))
+	return imageSrc2At(imageSrc0Origin() + vec2(col + shadow*15, row) + vec2(0.5))
 }
 `

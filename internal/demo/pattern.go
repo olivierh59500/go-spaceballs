@@ -114,10 +114,9 @@ var Second vec2
 var Palette [8]vec3
 
 func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	p := texCoord - imageSrc0Origin()
-	body := int(step(0.5, imageSrc0At(imageSrc0Origin() + p + vec2(32, 0)).a))
-	one := int(step(0.5, imageSrc1At(imageSrc1Origin() + p + First).r))
-	two := int(step(0.5, imageSrc1At(imageSrc1Origin() + p + Second).r))
+	body := int(step(0.5, imageSrc0At(texCoord + vec2(32, 0)).a))
+	one := int(step(0.5, imageSrc1At(texCoord + First).r))
+	two := int(step(0.5, imageSrc1At(texCoord + Second).r))
 	return vec4(Palette[body + one*2 + two*4], 1)
 }
 `

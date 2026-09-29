@@ -174,9 +174,8 @@ package main
 var Palette [4]vec3
 
 func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	p := texCoord - imageSrc0Origin()
-	one := int(step(0.5, imageSrc0At(imageSrc0Origin() + p).a))
-	two := int(step(0.5, imageSrc1At(imageSrc1Origin() + p).a))
+	one := int(step(0.5, imageSrc0At(texCoord).a))
+	two := int(step(0.5, imageSrc1At(texCoord).a))
 	return vec4(Palette[one + two*2], 1)
 }
 `

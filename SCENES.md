@@ -39,3 +39,8 @@ shadow and complete corner-color program. Its independently verified local
 counter wait is 422 VBL ticks. Native/reference pose comparison demonstrates
 that full-production boundaries also include loading/decompression handoff
 time; the minimum source waits alone do not prove absolute video alignment.
+
+The following textured unit now shares the six-mask geometry renderer with
+the trail and block units. Its original material transport, half-bright
+palette and 350 counter states are recovered. A graphics test compares the
+GPU material composition byte-for-byte with an independent planar decoder.
