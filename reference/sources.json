@@ -1,0 +1,29 @@
+{
+  "DCKVersion": "v1.0.0",
+  "Sources": [
+    {
+      "File": "Spaceballs - State of the art - 1992 - Amiga demo scene - HD 1080@50.mp4",
+      "Bytes": 154772169,
+      "SHA256": "318ebb4fd87ef6fc7929983805d1e3ac64c6d032369377aea458bff7a7126f0d"
+    },
+    {
+      "File": "spb-sota.dms",
+      "Bytes": 675871,
+      "SHA256": "1cc4568c4333508eee004ec020ded8f6859078848451d2a06de1a352d572edcc"
+    }
+  ],
+  "Video": {
+    "Width": 1920,
+    "Height": 1080,
+    "FPS": 50,
+    "Seconds": 249.753832,
+    "AudioSampleRate": 44100,
+    "AudioChannels": 2
+  },
+  "Disk": {
+    "Format": "DMS",
+    "Signature": "DMS!",
+    "Extracted": false
+  },
+  "IndependentModulePresent": false
+}
