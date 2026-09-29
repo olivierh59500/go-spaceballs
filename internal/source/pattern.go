@@ -67,15 +67,15 @@ func (p PatternMaterial) Image() *image.NRGBA {
 // PatternState preserves the PAL VBL clock and the half-rate contour clock.
 // Frame is -1 until a completed buffer becomes visible, or after the bank ends.
 type PatternState struct {
-	VBL, Copper, Frame int
-	X, Y, SecondY      int
-	Scroll             uint16
-	Palette            [8]uint16
+	VBL, ShapeTick, Frame int
+	X, Y, SecondY         int
+	Scroll                uint16
+	Palette               [8]uint16
 }
 
 func (p PatternMaterial) State(tick int) PatternState {
 	tick = max(0, min(tick, PatternTicks-1))
-	s := PatternState{VBL: tick + 1, Copper: tick/2 + 1, Frame: tick/2 - 2}
+	s := PatternState{VBL: tick + 1, ShapeTick: tick/2 + 1, Frame: tick/2 - 2}
 	// The initialization runs the same pointer step once before the first VBL.
 	s.X = int(p.X[(3*(tick+2))%len(p.X)])
 	s.Y = int(p.Y[(2*(tick+2))%len(p.Y)])
@@ -84,7 +84,7 @@ func (p PatternMaterial) State(tick int) PatternState {
 	if s.Frame >= 236 {
 		s.Frame = -1
 	}
-	if s.Copper >= 3 {
+	if s.ShapeTick >= 3 {
 		s.Palette = [8]uint16{0, 0, 0x170, 0, 0x707, 0, 0x711, 0}
 	}
 	if tick >= 20 {

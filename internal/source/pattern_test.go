@@ -46,7 +46,7 @@ func TestPatternClockMatchesOriginalCPU(t *testing.T) {
 			values[i] = int(value)
 		}
 		got := p.State(tick)
-		fields := []int{tick, got.VBL, got.Copper, got.X, got.Y, got.SecondY, int(got.Scroll)}
+		fields := []int{tick, got.VBL, got.ShapeTick, got.X, got.Y, got.SecondY, int(got.Scroll)}
 		want := []int{values[0], values[1], values[2], values[5], values[6], values[7], values[8]}
 		for i := range fields {
 			if fields[i] != want[i] {
@@ -59,9 +59,9 @@ func TestPatternClockMatchesOriginalCPU(t *testing.T) {
 			}
 		}
 		// Check the bank switch and consumed frame count independently as well.
-		base, remaining := 0xb4080, 25-got.Copper
-		if got.Copper > 26 {
-			base, remaining = 0xb4230, max(-1, 209-(got.Copper-26))
+		base, remaining := 0xb4080, 25-got.ShapeTick
+		if got.ShapeTick > 26 {
+			base, remaining = 0xb4230, max(-1, 209-(got.ShapeTick-26))
 		}
 		if base != values[3] || uint16(remaining) != uint16(values[4]) {
 			t.Fatalf("authored bank cursor differs at %d: %x/%d", tick, base, remaining)

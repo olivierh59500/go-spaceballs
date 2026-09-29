@@ -22,3 +22,14 @@ the actual object banks, animations, palettes and operation counts.
 The dancers and backgrounds recur in multiple compositions. Their source
 animation banks and timing must remain shared; independent approximate drawings
 or silhouettes traced from the recording would not establish fidelity.
+
+## Composed native units
+
+The opening, first musical pattern and retained-mask trail composition now
+use recovered source programs rather than the approximate intervals above.
+Their controllers match 961, 480 and 566 independently executed VBL states,
+respectively. Their 25 Hz shape updates use software interrupts requested by
+the 50 Hz VBL routine; copper display lists supply plane pointers and colors.
+GPU parity/edge raster boundaries and whole-production audio alignment still
+need final comparison. The remaining units are recovered data inventories,
+not finished native compositions.

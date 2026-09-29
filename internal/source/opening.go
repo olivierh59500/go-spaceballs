@@ -6,17 +6,17 @@ const OpeningTicks = 961
 // planes. During the middle passage, the first plane is held while only the
 // second plane rotates through the three working buffers.
 type OpeningClock struct {
-	Tick, Copper int
-	Current      int
-	Display      [2]int
-	Palette      [4]uint16
-	Bank         string
-	Frame        int
-	SecondOnly   bool
-	FillSecond   bool
-	Draw         bool
-	anchor       uint16
-	fade         int
+	Tick, ShapeTick int
+	Current         int
+	Display         [2]int
+	Palette         [4]uint16
+	Bank            string
+	Frame           int
+	SecondOnly      bool
+	FillSecond      bool
+	Draw            bool
+	anchor          uint16
+	fade            int
 }
 
 func NewOpeningClock() *OpeningClock {
@@ -24,7 +24,7 @@ func NewOpeningClock() *OpeningClock {
 		Bank: "hands", Frame: -1, anchor: 0xfff}
 }
 
-// Step returns whether a copper tick prepares a new buffer. All fades use the
+// Step returns whether a software IRQ tick prepares a new buffer. All fades use the
 // old VBL counter, as the source updates colors before incrementing it.
 func (c *OpeningClock) Step() bool {
 	if c.Tick >= OpeningTicks {
@@ -64,8 +64,8 @@ func (c *OpeningClock) Step() bool {
 	if t&1 != 0 {
 		return false
 	}
-	c.Copper++
-	c.SecondOnly = c.Copper >= 58 && c.Copper <= 199
+	c.ShapeTick++
+	c.SecondOnly = c.ShapeTick >= 58 && c.ShapeTick <= 199
 	// Address order: $5a000, $603b0, $66760. The working-buffer cycle descends.
 	visible := (c.Current + 1) % 3
 	c.Current = (c.Current + 2) % 3
@@ -75,18 +75,18 @@ func (c *OpeningClock) Step() bool {
 	}
 	c.FillSecond = c.Tick <= 580 || c.SecondOnly
 	switch {
-	case c.Copper < 58:
-		c.Bank, c.Frame = "hands", c.Copper-1
-	case c.Copper <= 199:
-		c.Bank, c.Frame = "opening", c.Copper-58
+	case c.ShapeTick < 58:
+		c.Bank, c.Frame = "hands", c.ShapeTick-1
+	case c.ShapeTick <= 199:
+		c.Bank, c.Frame = "opening", c.ShapeTick-58
 	default:
-		c.Bank, c.Frame = "first", 55+c.Copper-200
+		c.Bank, c.Frame = "first", 55+c.ShapeTick-200
 	}
 	c.Draw = c.Frame < mapFrameCount(c.Bank)
-	if c.Copper == 3 {
+	if c.ShapeTick == 3 {
 		c.Palette[0], c.Palette[2] = 0x102, 0x102
 	}
-	if c.Copper == 202 {
+	if c.ShapeTick == 202 {
 		c.Palette[2] = c.Palette[1]
 	}
 	return true

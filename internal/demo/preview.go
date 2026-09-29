@@ -23,10 +23,18 @@ type Preview struct {
 	hires     bool
 	pattern   *PatternEffect
 	opening   *OpeningEffect
+	trails    *TrailsEffect
+	limit     int
+	updates   int
 }
 
 func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 	p := &Preview{frame: frame, batch: render.NewBatch(4096)}
+	if bank == "trails" {
+		var err error
+		p.trails, err = NewTrailsEffect()
+		return p, err
+	}
 	if bank == "opening-effect" {
 		var err error
 		p.opening, err = NewOpeningEffect()
@@ -76,9 +84,24 @@ func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 	return p, nil
 }
 
-func (p *Preview) Update() error { p.frame++; return nil }
+// SetUpdateLimit bounds an interactive validation run without changing its clock.
+func (p *Preview) SetUpdateLimit(ticks int) { p.limit = max(0, ticks) }
+
+func (p *Preview) Update() error {
+	if p.limit > 0 && p.updates >= p.limit {
+		return ebiten.Termination
+	}
+	p.frame++
+	p.updates++
+	return nil
+}
 
 func (p *Preview) Draw(dst *ebiten.Image) {
+	if p.trails != nil {
+		p.trails.SetTick((p.frame%source.TrailsTicks + source.TrailsTicks) % source.TrailsTicks)
+		p.trails.Draw(dst)
+		return
+	}
 	if p.opening != nil {
 		p.opening.SetTick((p.frame%source.OpeningTicks + source.OpeningTicks) % source.OpeningTicks)
 		p.opening.Draw(dst)
@@ -131,6 +154,9 @@ func (p *Preview) Draw(dst *ebiten.Image) {
 func (*Preview) Layout(int, int) (int, int) { return Width, Height }
 
 func (p *Preview) Close() {
+	if p.trails != nil {
+		_ = p.trails.Close()
+	}
 	if p.opening != nil {
 		_ = p.opening.Close()
 	}

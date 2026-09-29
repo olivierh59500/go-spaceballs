@@ -21,14 +21,14 @@ native preview fits this visible region in its existing 352-by-290 canvas.
 ## Two independent clocks
 
 The original VBL entry at `$50274` updates the material motion at 50 Hz. It
-requests the copper callback on odd VBL counters. The callback at `$502e4`
+requests the level-1 software interrupt on odd VBL counters. The callback at `$502e4`
 therefore advances the silhouettes at 25 Hz. Its first bank has 26 frames;
 the next has 210. The triple-buffer display trails the prepared contour by
-two copper callbacks. The controller exits at copper count 240, after 480
-VBL ticks (9.6 seconds). Completed contours are held between copper ticks;
+two software callbacks. The controller exits at shape count 240, after 480
+VBL ticks (9.6 seconds). Completed contours are held between shape ticks;
 the backdrop continues moving every VBL.
 
-The palette is initially black. Copper count 3 installs the eight base
+The palette is initially black. Shape count 3 installs the eight base
 colors. VBL counters 20 through 36 interpolate the three body colors toward
 `$d00`, `$d70`, and `$bb0`; counters 460 through 476 fade the live palette
 to black. Each RGB nibble uses signed integer multiplication/division.

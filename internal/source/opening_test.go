@@ -36,18 +36,18 @@ func TestOpeningClockMatchesOriginalCPU(t *testing.T) {
 			values[i] = int(v)
 		}
 		c.Step()
-		base, remaining := 0x3fec6, 65-c.Copper
+		base, remaining := 0x3fec6, 65-c.ShapeTick
 		if c.Bank == "opening" {
-			base, remaining = 0x80000, 198-c.Copper
+			base, remaining = 0x80000, 198-c.ShapeTick
 		}
 		if c.Bank == "first" {
-			base, remaining = 0x83dfe, max(-1, 478-c.Copper)
+			base, remaining = 0x83dfe, max(-1, 478-c.ShapeTick)
 		}
 		second := 0
 		if c.SecondOnly {
 			second = 1
 		}
-		got := []int{tick, c.Tick, c.Copper, base, int(uint16(remaining)), second, addresses[c.Current],
+		got := []int{tick, c.Tick, c.ShapeTick, base, int(uint16(remaining)), second, addresses[c.Current],
 			addresses[c.Display[0]], addresses[c.Display[1]] + 0x31d8}
 		for _, word := range c.Palette {
 			got = append(got, int(word))

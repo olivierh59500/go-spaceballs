@@ -9,11 +9,11 @@ An additional **66-frame table** starts inside the resident program at
 `$3fec6` (file offset `$12c6`). Its first 57 frames supply the initial hands.
 The recovered inventory therefore contains 33 tables and 3,386 frames.
 
-The VBL routine runs at 50 Hz and requests a copper callback on odd VBL
-counts. Each copper callback prepares one contour at 25 Hz. The source exits
+The VBL routine runs at 50 Hz and requests a level-1 software interrupt on odd VBL
+counts. Each software callback prepares one contour at 25 Hz. The source exits
 the resident opening at VBL count 961, before the title/credit director.
 
-| Copper counts | Source table | Working/display-plane behavior |
+| Shape counts | Source table | Working/display-plane behavior |
 | --- | --- | --- |
 | 1–57 | Embedded hands, frames 0–56 | Rotate both display planes; clear and fill both working planes |
 | 58–199 | 142-frame bank at `$80000` | Hold the first display plane; rotate, clear and fill the second plane only |
@@ -33,7 +33,7 @@ backward clears the working targets and reconstructs the same state.
 ## Independent checks
 
 `internal/source/testdata/original-opening-clock.csv` stores all 961 source
-states. Ghidra executes the actual VBL/copper routines in the **initial**
+states. Ghidra executes the actual VBL/software routines in the **initial**
 memory image, before the dragon director overwrites resident code. Hardware
 raster helpers and the music update are omitted; source bank switching,
 buffer rotation, held-plane pointers and palette interpolation stay intact.

@@ -73,18 +73,12 @@ func (e *PatternEffect) Draw(dst *ebiten.Image) {
 	e.mask.Clear()
 	if e.state.Frame >= 0 && e.state.Frame < len(e.frames) {
 		e.batch.Begin(e.mask, e.white)
-		point := func(p source.Point) ebiten.Vertex {
-			return render.Vertex(float64(int(p.X)*351/256), float64(int(p.Y)*289/204), 0, 0, color.White)
-		}
 		// This scene merges all contour commands into one XOR-filled body plane.
 		for _, polygon := range e.frames[e.state.Frame] {
 			if len(polygon.Points) < 3 {
 				continue
 			}
-			first := point(polygon.Points[0])
-			for i := 1; i+1 < len(polygon.Points); i++ {
-				e.batch.Triangle(first, point(polygon.Points[i]), point(polygon.Points[i+1]))
-			}
+			filledContour(e.batch, polygon.Points, false)
 		}
 		e.batch.Flush()
 	}
