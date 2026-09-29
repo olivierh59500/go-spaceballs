@@ -33,6 +33,9 @@ func NewEffect(name string) (kit.Effect, int, error) {
 	case "tiles":
 		effect, err = NewTileEffect()
 		ticks = source.TileTicks
+	case "angular":
+		effect, err = NewAngularEffect()
+		ticks = source.AngularTicks
 	}
 	if err != nil {
 		return nil, 0, err

@@ -44,6 +44,16 @@ func NewNoiseEffect() (*NoiseEffect, error) {
 	if err != nil {
 		return nil, err
 	}
+	e, err := newNoiseRenderer(model)
+	if err != nil {
+		return nil, err
+	}
+	e.poses = poses
+	e.initialize()
+	return e, nil
+}
+
+func newNoiseRenderer(model source.NoiseModel) (*NoiseEffect, error) {
 	pack, err := ebiten.NewShader([]byte(trailsPackShader))
 	if err != nil {
 		return nil, err
@@ -53,7 +63,7 @@ func NewNoiseEffect() (*NoiseEffect, error) {
 		pack.Deallocate()
 		return nil, err
 	}
-	e := &NoiseEffect{model: model, poses: poses, clock: source.NewNoiseClock(),
+	e := &NoiseEffect{model: model,
 		pack: pack, shader: shader, masks: newMaskRing(), packed: render.NewSurface(Width, Height), palette: make([]float32, 192)}
 	for i, bits := range model.Bits {
 		pixels, err := source.MonochromeImage(bits)
@@ -69,7 +79,6 @@ func NewNoiseEffect() (*NoiseEffect, error) {
 	}
 	e.packOp.Blend = ebiten.BlendCopy
 	e.finalOp.Uniforms = map[string]any{"Palette": e.palette}
-	e.initialize()
 	return e, nil
 }
 
@@ -99,12 +108,16 @@ func (e *NoiseEffect) SetTick(tick int) {
 }
 
 func (e *NoiseEffect) Draw(dst *ebiten.Image) {
+	e.drawPlanes(dst, e.clock.Display, e.clock.Texture)
+}
+
+func (e *NoiseEffect) drawPlanes(dst *ebiten.Image, display [5]int, texture int) {
 	for i := range e.packOp.Images {
-		e.packOp.Images[i] = e.masks.planes[e.clock.Display[i]]
+		e.packOp.Images[i] = e.masks.planes[display[i]]
 	}
 	e.packed.DrawRectShader(Width, Height, e.pack, &e.packOp)
 	e.finalOp.Images[0], e.finalOp.Images[1], e.finalOp.Images[2] = e.packed,
-		e.masks.planes[e.clock.Display[4]], e.texture[e.clock.Texture]
+		e.masks.planes[display[4]], e.texture[texture]
 	dst.DrawRectShader(Width, Height, e.shader, &e.finalOp)
 }
 

@@ -54,3 +54,8 @@ animated three-plane tile composition between the textured retained dancers
 and the second spirograph. It was absent from the initial coarse inventory;
 its native composition now matches the original decoded images and all
 143 transport states. Its placement in the final sequence remains pending.
+
+The side-track 114 material-trail unit now retains five source pose banks,
+32 cues and the original bank-dependent trail reset. Its local 715-state
+controller is independently verified. The initial ten-second observations
+are intentionally not used as authoritative stage boundaries.
