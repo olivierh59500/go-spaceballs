@@ -12,8 +12,9 @@ at `$501fa`. It is **another animated composition**, not a blank hold.
 It combines original monochrome tiles into three display planes with a
 moving pointer program and alternating palettes. Its VBL counter at
 `$50cd2` must reach 143 before it enters the next spirograph at `$45012`.
-That minimum interval is 2.86 seconds. The native tile composition remains
-to be reconstructed and must be included in the complete director.
+That minimum interval is 2.86 seconds. The native tile composition is now
+[reconstructed and independently verified](TILES.md); it remains to be
+connected to the complete director.
 
 The native preview's main-module starting offsets now include these source
 waits. They are local validation offsets, not proof that all disk reads and

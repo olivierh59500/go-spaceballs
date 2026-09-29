@@ -51,5 +51,6 @@ source pose is actually displayed, including the mask-pointer offset.
 
 The recovered [loading handoffs](reference/HANDOFFS.md) include an additional
 animated three-plane tile composition between the textured retained dancers
-and the second spirograph. It was absent from the initial coarse inventory
-and remains part of the full conversion scope.
+and the second spirograph. It was absent from the initial coarse inventory;
+its native composition now matches the original decoded images and all
+143 transport states. Its placement in the final sequence remains pending.

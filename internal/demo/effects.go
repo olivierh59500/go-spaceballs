@@ -30,6 +30,9 @@ func NewEffect(name string) (kit.Effect, int, error) {
 	case "wave":
 		effect, err = NewWaveEffect()
 		ticks = source.WaveTicks
+	case "tiles":
+		effect, err = NewTileEffect()
+		ticks = source.TileTicks
 	}
 	if err != nil {
 		return nil, 0, err
