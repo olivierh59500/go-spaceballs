@@ -80,3 +80,9 @@ The side-track 146 director returns to block gradients with six banks of
 fine contours. Its disabled fill, one-row outline sampling, mirror/cue
 program and 1,385 controller states are now retained natively. All 693
 generated background grids match the original gradient execution.
+
+The final controller now retains its 94 cues, variable interrupt/cue spans,
+palette word arithmetic, blinking bitplane mode and white fade. All 1,716
+states include the pose in the displayed buffer and are independently
+verified. The stationary closing artwork is decoded. The complete director
+and title/credit/illustration transitions remain separate required work.

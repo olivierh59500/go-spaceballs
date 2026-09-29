@@ -39,6 +39,18 @@ func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 	if p.effect != nil {
 		return p, nil
 	}
+	if bank == "closing" {
+		data, err := assets.Files.ReadFile("raw/final-effects.bin")
+		if err != nil {
+			return nil, err
+		}
+		pixels, err := source.ClosingPicture(data)
+		if err != nil {
+			return nil, err
+		}
+		p.picture = ebiten.NewImageFromImage(pixels)
+		return p, nil
+	}
 	if bank == "dragon" {
 		data, _ := assets.Files.ReadFile("raw/credits-packed.bin")
 		director, _ := assets.Files.ReadFile("raw/second-director.bin")

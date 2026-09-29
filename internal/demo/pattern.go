@@ -103,7 +103,7 @@ func (e *PatternEffect) Draw(dst *ebiten.Image) {
 	e.canvas.DrawRectShader(640, 512, e.shader, &e.options)
 	var op ebiten.DrawImageOptions
 	// DIWSTRT $1c71 and DIWSTOP $3ec7 expose 342 low-resolution pixels.
-	op.GeoM.Scale(float64(Width)/342, 1)
+	op.GeoM.Scale(float64(Width)/float64(e.canvas.Bounds().Dx()), 1)
 	dst.DrawImage(e.canvas, &op)
 }
 
