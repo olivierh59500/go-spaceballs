@@ -48,3 +48,8 @@ GPU material composition byte-for-byte with an independent planar decoder.
 The second spirograph passage shares the first one's material renderer with
 its own cue/pose/palette program. Its 846 recorded states also retain which
 source pose is actually displayed, including the mask-pointer offset.
+
+The recovered [loading handoffs](reference/HANDOFFS.md) include an additional
+animated three-plane tile composition between the textured retained dancers
+and the second spirograph. It was absent from the initial coarse inventory
+and remains part of the full conversion scope.

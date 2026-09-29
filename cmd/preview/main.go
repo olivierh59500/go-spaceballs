@@ -61,7 +61,7 @@ func main() {
 			position += 32360 * time.Millisecond
 		}
 		if *bank == "wave" {
-			position += 42360 * time.Millisecond
+			position += 42220 * time.Millisecond
 		}
 		if err := player.Seek(position); err != nil {
 			log.Fatal(err)
