@@ -71,3 +71,7 @@ passage. Its table's earlier `close-up` inventory name remains a diagnostic
 asset alias, but the composed effect is `ribbons`. Its 816-state controller
 retains reversed playback, mirrored lookups, four pose pairs and palette
 flashes.
+
+The side-track 139 outline/body unit now retains its two 256-frame banks,
+51 cues, trail-pointer rules and final one-plane white exit. Its 1,041
+controller states match an independent execution of the original program.
