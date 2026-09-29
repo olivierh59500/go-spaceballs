@@ -47,3 +47,20 @@ DCK records the production canvas and its own synchronized PCM output. The
 default export is a 250-second H.264/AAC MP4 at 704 by 580 pixels and 50 FPS,
 including the closing hold. It also writes a PNG poster and chapter report.
 FFmpeg is required. The original recording is not used by this exporter.
+
+## Verified delivery
+
+The ARM64 development APK was installed and exercised on a Google Pixel 10a
+on 29 September 2026. The complete sequence reached its stationary closing
+page without a crash. After startup, five-second samples measured 49.2–51.0
+ticks/s around the 50 Hz target and approximately 60 displayed frames/s.
+The measured Go heap peaked at 65.4 MiB; this excludes native/GPU memory.
+Backgrounding and resuming the activity retained the same running process.
+Both ZIP packaging and all native ELF load segments passed 16 KiB alignment.
+
+The complete export contains 12,500 frames over 250 seconds at 704 by 580
+pixels, with stereo 48 kHz music. The portfolio WebM uses VP9/Opus; the retained
+MP4 uses H.264/AAC. Both loading and main music are present. A separate
+140-second MP4 excerpt starts at 43.78 seconds for short video sharing.
+Browser validation covered French/English copy, poster loading, video/audio
+decoding, seeks across the production, search filtering and narrow layouts.
