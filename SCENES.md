@@ -65,3 +65,9 @@ counter rewinds, camera changes and palette arithmetic. Its second bank
 uses an edge-endpoint exchange, requiring the new parity-span geometry
 path. The 1,618-state controller is verified separately from the remaining
 original line/fill raster-boundary comparison.
+
+Native rendering identifies the side-track 134 unit as the angular ribbon
+passage. Its table's earlier `close-up` inventory name remains a diagnostic
+asset alias, but the composed effect is `ribbons`. Its 816-state controller
+retains reversed playback, mirrored lookups, four pose pairs and palette
+flashes.
