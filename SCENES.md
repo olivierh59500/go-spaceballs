@@ -59,3 +59,9 @@ The side-track 114 material-trail unit now retains five source pose banks,
 32 cues and the original bank-dependent trail reset. Its local 715-state
 controller is independently verified. The initial ten-second observations
 are intentionally not used as authoritative stage boundaries.
+
+The following side-track 127 unit now retains its two banks, 71 cues,
+counter rewinds, camera changes and palette arithmetic. Its second bank
+uses an edge-endpoint exchange, requiring the new parity-span geometry
+path. The 1,618-state controller is verified separately from the remaining
+original line/fill raster-boundary comparison.

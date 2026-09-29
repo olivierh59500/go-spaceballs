@@ -48,3 +48,38 @@ func (r *maskRing) close() {
 	}
 	r.white.Deallocate()
 }
+
+// prepareSliced preserves the source's edge-endpoint Y exchange in its second
+// bank. Ray parity spans let those modified edges fill without assuming a
+// conventional closed silhouette after the exchange.
+func (r *maskRing) prepareSliced(index int, frame []source.Polygon, zoom, exchangeY bool) {
+	plane := r.planes[index]
+	plane.Clear()
+	r.batch.Begin(plane, r.white)
+	point := func(p source.Point) ebiten.Vertex {
+		x, y := int(p.X)*351/256, int(p.Y)*289/204
+		if zoom {
+			x = max(0, min(351, int(p.X)*680/256-130))
+			y = max(0, min(289, int(p.Y)*550/204-135))
+		}
+		return render.Vertex(float64(x), float64(y), 0, 0, color.White)
+	}
+	for _, polygon := range frame {
+		if len(polygon.Points) < 3 {
+			continue
+		}
+		for i, p := range polygon.Points {
+			a, b := point(p), point(polygon.Points[(i+1)%len(polygon.Points)])
+			if exchangeY {
+				a.DstY, b.DstY = b.DstY, a.DstY
+			}
+			if a.DstY == b.DstY {
+				continue
+			}
+			leftA, leftB := a, b
+			leftA.DstX, leftB.DstX = -1, -1
+			r.batch.Quad([4]ebiten.Vertex{a, b, leftB, leftA})
+		}
+	}
+	r.batch.Flush()
+}
