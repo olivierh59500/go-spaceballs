@@ -102,5 +102,21 @@
     "Address": 720896,
     "Bytes": 39424,
     "SHA256": "8fce9d75602f03ff5d5c47bdbdd7883469821361f9700ab004678d88a97c41db"
+  },
+  {
+    "Name": "main-effects",
+    "Track": 79,
+    "Tracks": 1,
+    "Address": 262144,
+    "Bytes": 5632,
+    "SHA256": "6c5b967a57e43ce87f8e266ac4439a048473eba59ff78912333b2dd4841e5c26"
+  },
+  {
+    "Name": "second-animation",
+    "Track": 80,
+    "Tracks": 5,
+    "Address": 786432,
+    "Bytes": 28160,
+    "SHA256": "9651e40abee055c4773e31acf80043a9a4f8041fbf55359eb70a40a9141ca07d"
   }
 ]

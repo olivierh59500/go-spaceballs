@@ -21,7 +21,8 @@ var Regions = []Region{
 	{"picture", 22, 2, 0x4d000}, {"main-music-head", 24, 36, 0x1000},
 	{"main-music-tail", 60, 6, 0x32800}, {"credits-packed", 66, 4, 0xc0000},
 	{"second-director", 70, 1, 0x3e000}, {"effects-director", 71, 1, 0x50000},
-	{"later-animation", 72, 7, 0xb0000},
+	{"later-animation", 72, 7, 0xb0000}, {"main-effects", 79, 1, 0x40000},
+	{"second-animation", 80, 5, 0xc0000},
 }
 
 func ValidateDisk(data []byte) error {
