@@ -30,7 +30,7 @@ func TestCompleteRecoveredAnimationInventoryHasBoundedContours(t *testing.T) {
 			}
 		}
 	}
-	if len(AnimationBanks) != 32 || total < 3000 {
+	if len(AnimationBanks) != 33 || total != 3386 {
 		t.Fatal("incomplete recovered inventory", len(AnimationBanks), total)
 	}
 }

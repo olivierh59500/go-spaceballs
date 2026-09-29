@@ -22,10 +22,16 @@ type Preview struct {
 	hands     bool
 	hires     bool
 	pattern   *PatternEffect
+	opening   *OpeningEffect
 }
 
 func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
-	p := &Preview{frame: frame - 1, batch: render.NewBatch(4096)}
+	p := &Preview{frame: frame, batch: render.NewBatch(4096)}
+	if bank == "opening-effect" {
+		var err error
+		p.opening, err = NewOpeningEffect()
+		return p, err
+	}
 	if bank == "pattern" {
 		var err error
 		p.pattern, err = NewPatternEffect()
@@ -73,6 +79,11 @@ func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 func (p *Preview) Update() error { p.frame++; return nil }
 
 func (p *Preview) Draw(dst *ebiten.Image) {
+	if p.opening != nil {
+		p.opening.SetTick((p.frame%source.OpeningTicks + source.OpeningTicks) % source.OpeningTicks)
+		p.opening.Draw(dst)
+		return
+	}
 	if p.pattern != nil {
 		p.pattern.SetTick((p.frame%source.PatternTicks + source.PatternTicks) % source.PatternTicks)
 		p.pattern.Draw(dst)
@@ -120,6 +131,9 @@ func (p *Preview) Draw(dst *ebiten.Image) {
 func (*Preview) Layout(int, int) (int, int) { return Width, Height }
 
 func (p *Preview) Close() {
+	if p.opening != nil {
+		_ = p.opening.Close()
+	}
 	if p.pattern != nil {
 		_ = p.pattern.Close()
 	}

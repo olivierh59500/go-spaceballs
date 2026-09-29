@@ -13,6 +13,7 @@ type AnimationBank struct {
 // AnimationBanks identifies every complete pointer table in the loaded streams.
 // Their ordering is an inventory, not a substitute for the source choreography.
 var AnimationBanks = []AnimationBank{
+	{"hands", "resident", 0x12c6, 66},
 	{"opening", "intro", 0, 142}, {"first", "first-animation", 0, 335},
 	{"turn", "later-animation", 0x4080, 26}, {"long-turn", "later-animation", 0x4230, 210},
 	{"blocks", "background-patterns", 0, 211},
