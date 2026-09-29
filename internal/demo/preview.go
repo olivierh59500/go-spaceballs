@@ -24,12 +24,18 @@ type Preview struct {
 	pattern   *PatternEffect
 	opening   *OpeningEffect
 	trails    *TrailsEffect
+	blocks    *BlocksEffect
 	limit     int
 	updates   int
 }
 
 func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 	p := &Preview{frame: frame, batch: render.NewBatch(4096)}
+	if bank == "blocks-effect" {
+		var err error
+		p.blocks, err = NewBlocksEffect()
+		return p, err
+	}
 	if bank == "trails" {
 		var err error
 		p.trails, err = NewTrailsEffect()
@@ -97,6 +103,11 @@ func (p *Preview) Update() error {
 }
 
 func (p *Preview) Draw(dst *ebiten.Image) {
+	if p.blocks != nil {
+		p.blocks.SetTick((p.frame%source.BlocksTicks + source.BlocksTicks) % source.BlocksTicks)
+		p.blocks.Draw(dst)
+		return
+	}
 	if p.trails != nil {
 		p.trails.SetTick((p.frame%source.TrailsTicks + source.TrailsTicks) % source.TrailsTicks)
 		p.trails.Draw(dst)
@@ -154,6 +165,9 @@ func (p *Preview) Draw(dst *ebiten.Image) {
 func (*Preview) Layout(int, int) (int, int) { return Width, Height }
 
 func (p *Preview) Close() {
+	if p.blocks != nil {
+		_ = p.blocks.Close()
+	}
 	if p.trails != nil {
 		_ = p.trails.Close()
 	}
