@@ -75,12 +75,8 @@ type PatternState struct {
 
 func (p PatternMaterial) State(tick int) PatternState {
 	tick = max(0, min(tick, PatternTicks-1))
-	s := PatternState{VBL: tick + 1, ShapeTick: tick/2 + 1, Frame: tick/2 - 2}
-	// The initialization runs the same pointer step once before the first VBL.
-	s.X = int(p.X[(3*(tick+2))%len(p.X)])
-	s.Y = int(p.Y[(2*(tick+2))%len(p.Y)])
-	s.SecondY = int(p.Y[(3*(tick+2))%len(p.Y)])
-	s.Scroll = uint16((^s.X & 15) << 4)
+	s := p.Motion(tick)
+	s.ShapeTick, s.Frame = tick/2+1, tick/2-1
 	if s.Frame >= 236 {
 		s.Frame = -1
 	}
@@ -99,6 +95,18 @@ func (p PatternMaterial) State(tick int) PatternState {
 			s.Palette[i] = BlendRGB12(c, 0, step, 16)
 		}
 	}
+	return s
+}
+
+// Motion is shared by both spirograph passages. It leaves animation/palette
+// timing to their controllers and preserves the two circular material views.
+func (p PatternMaterial) Motion(tick int) PatternState {
+	s := PatternState{VBL: tick + 1, Frame: -1}
+	// The initialization runs the same pointer step once before the first VBL.
+	s.X = int(p.X[(3*(tick+2))%len(p.X)])
+	s.Y = int(p.Y[(2*(tick+2))%len(p.Y)])
+	s.SecondY = int(p.Y[(3*(tick+2))%len(p.Y)])
+	s.Scroll = uint16((^s.X & 15) << 4)
 	return s
 }
 

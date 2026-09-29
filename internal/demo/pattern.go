@@ -14,19 +14,20 @@ import (
 // PatternEffect reconstructs the first musical scene from the authored material,
 // contour banks, integer motion tables and RGB12 palette program.
 type PatternEffect struct {
-	material source.PatternMaterial
-	frames   [][]source.Polygon
-	state    source.PatternState
-	mask     *ebiten.Image
-	canvas   *ebiten.Image
-	texture  *ebiten.Image
-	white    *ebiten.Image
-	shader   *ebiten.Shader
-	batch    *render.Batch
-	palette  []float32
-	first    []float32
-	second   []float32
-	options  ebiten.DrawRectShaderOptions
+	material  source.PatternMaterial
+	frames    [][]source.Polygon
+	state     source.PatternState
+	mask      *ebiten.Image
+	canvas    *ebiten.Image
+	texture   *ebiten.Image
+	white     *ebiten.Image
+	shader    *ebiten.Shader
+	batch     *render.Batch
+	palette   []float32
+	first     []float32
+	second    []float32
+	maskShift []float32
+	options   ebiten.DrawRectShaderOptions
 }
 
 func NewPatternEffect() (*PatternEffect, error) {
@@ -46,19 +47,28 @@ func NewPatternEffect() (*PatternEffect, error) {
 		}
 		frames = append(frames, bank.Frames...)
 	}
+	e, err := newPatternRenderer(material)
+	if err != nil {
+		return nil, err
+	}
+	e.frames = frames
+	e.SetTick(0)
+	return e, nil
+}
+
+func newPatternRenderer(material source.PatternMaterial) (*PatternEffect, error) {
 	shader, err := ebiten.NewShader([]byte(patternShader))
 	if err != nil {
 		return nil, err
 	}
-	e := &PatternEffect{material: material, frames: frames, shader: shader,
+	e := &PatternEffect{material: material, shader: shader,
 		mask: render.NewSurface(640, 512), canvas: render.NewSurface(342, Height), texture: ebiten.NewImageFromImage(material.Image()),
 		white: ebiten.NewImage(1, 1), batch: render.NewBatch(4096),
-		palette: make([]float32, 8*3), first: make([]float32, 2), second: make([]float32, 2)}
+		palette: make([]float32, 8*3), first: make([]float32, 2), second: make([]float32, 2), maskShift: []float32{32, 0}}
 	e.white.Fill(color.White)
 	e.batch.Options.FillRule = ebiten.FillRuleEvenOdd
 	e.options.Images[0], e.options.Images[1] = e.mask, e.texture
-	e.options.Uniforms = map[string]any{"Palette": e.palette, "First": e.first, "Second": e.second}
-	e.SetTick(0)
+	e.options.Uniforms = map[string]any{"Palette": e.palette, "First": e.first, "Second": e.second, "MaskShift": e.maskShift}
 	return e, nil
 }
 
@@ -111,10 +121,11 @@ package main
 
 var First vec2
 var Second vec2
+var MaskShift vec2
 var Palette [8]vec3
 
 func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	body := int(step(0.5, imageSrc0At(texCoord + vec2(32, 0)).a))
+	body := int(step(0.5, imageSrc0At(texCoord + MaskShift).a))
 	one := int(step(0.5, imageSrc1At(texCoord + First).r))
 	two := int(step(0.5, imageSrc1At(texCoord + Second).r))
 	return vec4(Palette[body + one*2 + two*4], 1)

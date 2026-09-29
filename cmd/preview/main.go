@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	bank := flag.String("bank", "opening-effect", "source bank or composed effect: opening-effect, hands, intro, first-animation, picture, dragon, pattern, trails, blocks-effect, noise")
+	bank := flag.String("bank", "opening-effect", "source bank or composed effect: opening-effect, hands, intro, first-animation, picture, dragon, pattern, trails, blocks-effect, noise, wave")
 	frame := flag.Int("frame", 0, "initial source frame")
 	offset := flag.Int("picture-offset", 0, "packed picture offset within its source bank")
 	directory := flag.String("capture", "", "write one deterministic native asset screenshot")
@@ -52,10 +52,16 @@ func main() {
 		defer player.Close()
 		position := time.Duration(max(0, *frame)) * time.Second / demo.FPS
 		if *bank == "trails" {
-			position += 9600 * time.Millisecond
+			position += 12600 * time.Millisecond
 		}
 		if *bank == "blocks-effect" {
-			position += 20920 * time.Millisecond
+			position += 23920 * time.Millisecond
+		}
+		if *bank == "noise" {
+			position += 32360 * time.Millisecond
+		}
+		if *bank == "wave" {
+			position += 42360 * time.Millisecond
 		}
 		if err := player.Seek(position); err != nil {
 			log.Fatal(err)

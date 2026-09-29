@@ -30,7 +30,7 @@ func TestPatternClockMatchesOriginalCPU(t *testing.T) {
 		t.Fatalf("invalid independent CPU fixture: %d rows, %v", len(rows), err)
 	}
 	for tick, row := range rows {
-		if len(row) != 17 {
+		if len(row) != 18 {
 			t.Fatal("truncated source state", tick)
 		}
 		values := make([]int, len(row))
@@ -46,6 +46,9 @@ func TestPatternClockMatchesOriginalCPU(t *testing.T) {
 			values[i] = int(value)
 		}
 		got := p.State(tick)
+		if got.Frame != values[17] {
+			t.Fatalf("tick %d: visible pose %d != original buffer pose %d", tick, got.Frame, values[17])
+		}
 		fields := []int{tick, got.VBL, got.ShapeTick, got.X, got.Y, got.SecondY, int(got.Scroll)}
 		want := []int{values[0], values[1], values[2], values[5], values[6], values[7], values[8]}
 		for i := range fields {

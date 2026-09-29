@@ -44,3 +44,7 @@ The following textured unit now shares the six-mask geometry renderer with
 the trail and block units. Its original material transport, half-bright
 palette and 350 counter states are recovered. A graphics test compares the
 GPU material composition byte-for-byte with an independent planar decoder.
+
+The second spirograph passage shares the first one's material renderer with
+its own cue/pose/palette program. Its 846 recorded states also retain which
+source pose is actually displayed, including the mask-pointer offset.

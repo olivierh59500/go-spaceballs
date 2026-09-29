@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	kit "github.com/olivierh59500/democonstructionkit"
 	"github.com/olivierh59500/democonstructionkit/render"
 	"github.com/olivierh59500/go-spaceballs/assets"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
@@ -21,41 +22,22 @@ type Preview struct {
 	batch     *render.Batch
 	hands     bool
 	hires     bool
-	pattern   *PatternEffect
-	opening   *OpeningEffect
-	trails    *TrailsEffect
-	blocks    *BlocksEffect
-	noise     *NoiseEffect
+	effect    kit.Effect
+	period    int
+	err       error
 	limit     int
 	updates   int
 }
 
 func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
-	p := &Preview{frame: frame, batch: render.NewBatch(4096)}
-	if bank == "noise" {
-		var err error
-		p.noise, err = NewNoiseEffect()
-		return p, err
+	p := &Preview{frame: frame}
+	var err error
+	p.effect, p.period, err = NewEffect(bank)
+	if err != nil {
+		return nil, err
 	}
-	if bank == "blocks-effect" {
-		var err error
-		p.blocks, err = NewBlocksEffect()
-		return p, err
-	}
-	if bank == "trails" {
-		var err error
-		p.trails, err = NewTrailsEffect()
-		return p, err
-	}
-	if bank == "opening-effect" {
-		var err error
-		p.opening, err = NewOpeningEffect()
-		return p, err
-	}
-	if bank == "pattern" {
-		var err error
-		p.pattern, err = NewPatternEffect()
-		return p, err
+	if p.effect != nil {
+		return p, nil
 	}
 	if bank == "dragon" {
 		data, _ := assets.Files.ReadFile("raw/credits-packed.bin")
@@ -84,12 +66,12 @@ func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 	if bank == "first-animation" {
 		name = "first"
 	}
-	var err error
 	p.animation, err = source.LoadAnimation(assets.Files, name)
 	if err != nil {
 		return nil, err
 	}
 	p.hands = name == "opening"
+	p.batch = render.NewBatch(4096)
 	p.white = ebiten.NewImage(1, 1)
 	p.white.Fill(color.White)
 	p.batch.Options.FillRule = ebiten.FillRuleEvenOdd
@@ -100,6 +82,9 @@ func NewPreview(bank string, frame, pictureOffset int) (*Preview, error) {
 func (p *Preview) SetUpdateLimit(ticks int) { p.limit = max(0, ticks) }
 
 func (p *Preview) Update() error {
+	if p.err != nil {
+		return p.err
+	}
 	if p.limit > 0 && p.updates >= p.limit {
 		return ebiten.Termination
 	}
@@ -109,29 +94,12 @@ func (p *Preview) Update() error {
 }
 
 func (p *Preview) Draw(dst *ebiten.Image) {
-	if p.noise != nil {
-		p.noise.SetTick((p.frame%source.NoiseTicks + source.NoiseTicks) % source.NoiseTicks)
-		p.noise.Draw(dst)
-		return
-	}
-	if p.blocks != nil {
-		p.blocks.SetTick((p.frame%source.BlocksTicks + source.BlocksTicks) % source.BlocksTicks)
-		p.blocks.Draw(dst)
-		return
-	}
-	if p.trails != nil {
-		p.trails.SetTick((p.frame%source.TrailsTicks + source.TrailsTicks) % source.TrailsTicks)
-		p.trails.Draw(dst)
-		return
-	}
-	if p.opening != nil {
-		p.opening.SetTick((p.frame%source.OpeningTicks + source.OpeningTicks) % source.OpeningTicks)
-		p.opening.Draw(dst)
-		return
-	}
-	if p.pattern != nil {
-		p.pattern.SetTick((p.frame%source.PatternTicks + source.PatternTicks) % source.PatternTicks)
-		p.pattern.Draw(dst)
+	if p.effect != nil {
+		tick := (p.frame%p.period + p.period) % p.period
+		p.err = p.effect.Update(kit.Frame{Time: float64(tick) / FPS})
+		if p.err == nil {
+			p.effect.Draw(dst)
+		}
 		return
 	}
 	dst.Fill(source.RGB12(0x102))
@@ -176,20 +144,8 @@ func (p *Preview) Draw(dst *ebiten.Image) {
 func (*Preview) Layout(int, int) (int, int) { return Width, Height }
 
 func (p *Preview) Close() {
-	if p.noise != nil {
-		_ = p.noise.Close()
-	}
-	if p.blocks != nil {
-		_ = p.blocks.Close()
-	}
-	if p.trails != nil {
-		_ = p.trails.Close()
-	}
-	if p.opening != nil {
-		_ = p.opening.Close()
-	}
-	if p.pattern != nil {
-		_ = p.pattern.Close()
+	if p.effect != nil {
+		_ = kit.Close(p.effect)
 	}
 	if p.white != nil {
 		p.white.Deallocate()

@@ -23,8 +23,8 @@ native preview fits this visible region in its existing 352-by-290 canvas.
 The original VBL entry at `$50274` updates the material motion at 50 Hz. It
 requests the level-1 software interrupt on odd VBL counters. The callback at `$502e4`
 therefore advances the silhouettes at 25 Hz. Its first bank has 26 frames;
-the next has 210. The triple-buffer display trails the prepared contour by
-two software callbacks. The controller exits at shape count 240, after 480
+the next has 210. Its three working buffers display a contour one software
+callback after it is prepared. The controller exits at shape count 240, after 480
 VBL ticks (9.6 seconds). Completed contours are held between shape ticks;
 the backdrop continues moving every VBL.
 
@@ -40,7 +40,7 @@ from executing both original callback entry points with Ghidra's 68000
 interpreter. Only hardware raster-writing helpers were replaced by returns;
 the contour reader, bank switch, pointer transport and palette routines ran
 unchanged. Tests compare every clock, bank cursor, material origin,
-fine-scroll word and live palette entry against that fixture.
+fine-scroll word, live palette entry and displayed-buffer pose against that fixture.
 
 The Go effect reads the recovered bitmap and contour tables, renders the
 parity mask through DCK's bounded triangle batch, and combines the three
