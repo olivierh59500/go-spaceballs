@@ -23,7 +23,36 @@
   "Disk": {
     "Format": "DMS",
     "Signature": "DMS!",
-    "Extracted": false
+    "Extracted": true,
+    "ADFBytes": 901120,
+    "ADFSHA256": "6c60b98bf206921ceea76c7b4be25ad95c8fd81088a493916921ef70ab0cab9f",
+    "Tracks": 80,
+    "CompressedTracks": 81,
+    "Compression": "HEAVY2 with an RLE banner",
+    "OriginalDiskLabel": "SPACEBALLS STATE OF THE ART 1MB CHIPMEM VERSION"
   },
-  "IndependentModulePresent": false
+  "IndependentModulePresent": false,
+  "AnalysisTool": {
+    "Name": "xDMS",
+    "Version": "1.3.5",
+    "Repository": "https://gitlab.com/heikkiorsila/xdms",
+    "Revision": "714ab57d3d73b3174c62396a14d17a27d35c9fc2",
+    "Installation": "Local excluded analysis tool; user approved"
+  },
+  "RecoveredModules": [
+    {
+      "Name": "Loader",
+      "Title": "?????",
+      "Offset": 28160,
+      "Bytes": 35398,
+      "SHA256": "370f4ac85491d92a882e530c56e0240705623bdc83d90e440b85c0eb70c942bc"
+    },
+    {
+      "Name": "Main soundtrack",
+      "Title": "condom_corruption",
+      "Offset": 139814,
+      "Bytes": 230652,
+      "SHA256": "9d6b40362d8f5142dc7c8fa8020b4a2d54984c04a7cd0d25280bd276d9dd4ba6"
+    }
+  ]
 }
