@@ -170,6 +170,12 @@ renderer keeps the preceding conversion surface and two-pass image path.
 Use `go run ./cmd/checkframes -production -output /path/to/director.json`
 to reproduce the full traversal with every intervening update drawn.
 
+The published DCK 1.0.9 Android build passed ELF/ZIP 16 KiB alignment checks
+and completed the director on Pixel 10a with normal audio. Five-second samples
+after startup measured 49.2–50.9 TPS and 58.0–60.1 FPS, with 66.6 MiB peak Go
+heap. These runtime measurements exclude native/GPU memory and are separate
+from an Android visual-reference comparison.
+
 All 690 sampled full RGBA frames match the preceding renderer across 11,209
 rendered frames in all fourteen effect units, with unchanged pass counts and
 50 Hz timing. The independent six-plane decoder also checks opaque monochrome
