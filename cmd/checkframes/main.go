@@ -17,7 +17,7 @@ import (
 	"github.com/olivierh59500/go-spaceballs/internal/demo"
 )
 
-var banks = [...]string{"trails", "noise", "angular", "sliced", "ribbons", "duet"}
+var banks = [...]string{"opening-effect", "pattern", "trails", "blocks-effect", "noise", "tiles", "vote", "wave", "angular", "sliced", "ribbons", "duet", "outline", "finale"}
 
 type sample struct {
 	Bank   string `json:"bank"`
