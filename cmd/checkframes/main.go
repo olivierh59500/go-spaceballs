@@ -10,7 +10,6 @@ import (
 	"image/color"
 	"log"
 	"os"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
@@ -47,6 +46,7 @@ type probe struct {
 	full                 bool
 	lastUnit             string
 	unitStart            int
+	segmentStarts        map[int]bool
 }
 
 func (*probe) Layout(int, int) (int, int) { return demo.Width, demo.Height }
@@ -126,7 +126,7 @@ func (p *probe) drawProduction(dst *ebiten.Image) {
 			}
 		}
 		unit, tick := p.production.Position()
-		if unit != p.lastUnit {
+		if unit != p.lastUnit || p.segmentStarts[tick] {
 			p.lastUnit, p.unitStart = unit, tick
 		}
 		p.production.Draw(p.surface)
@@ -162,12 +162,12 @@ func main() {
 	}
 	p := &probe{full: *production}
 	if p.full {
-		program, err := demo.NewProgram(false)
-		if err != nil {
-			log.Fatal(err)
+		p.segmentStarts = make(map[int]bool, len(demo.ProgramSegments))
+		for _, segment := range demo.ProgramSegments {
+			p.segmentStarts[p.duration] = true
+			p.duration += segment.Ticks
 		}
-		p.duration = int(program.Duration()/time.Second)*demo.FPS + demo.FPS
-		program.Close()
+		p.duration += demo.FPS // Include a stationary closing hold.
 	}
 	defer p.Close()
 	ebiten.SetWindowSize(demo.Width, demo.Height)
