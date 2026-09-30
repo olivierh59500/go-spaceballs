@@ -62,8 +62,11 @@ The 30 September 2026 package was rebuilt after the shared contour and offset
 material migrations. The embedded native library records DCK v1.0.5; its four
 ELF load segments and APK library placement pass 16 KiB alignment. Desktop parity
 covers 690 sampled complete frames through all fourteen effect units with the
-published module. The Pixel measurements above describe the 29 September build;
-the device was unavailable for a new run at this update.
+published module. The package was installed on the Pixel 10a on 30 September and
+completed the whole sequence through its closing page. Five-second measurements
+recorded 49.8–50.9 ticks/s, 57.0–60.1 displayed frames/s and a peak Go heap of
+67.0 MiB, excluding native/GPU memory. No crash was observed. This runtime check
+does not replace the separate visual-reference comparisons.
 
 The complete export contains 12,500 frames over 250 seconds at 704 by 580
 pixels, with stereo 48 kHz music. The portfolio WebM uses VP9/Opus; the retained
