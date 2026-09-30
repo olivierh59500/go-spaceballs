@@ -1,6 +1,6 @@
 # Android
 
-The Android application runs the same Go production and DCK v1.0.0 as the
+The Android application runs the same Go production and DCK v1.0.1 as the
 desktop command, at 50 ticks per second. Its fixed canvas is fitted in landscape
 without stretching. The activity keeps the display awake while the demo runs
 and suspends rendering/audio when the application leaves the foreground.
@@ -57,6 +57,12 @@ ticks/s around the 50 Hz target and approximately 60 displayed frames/s.
 The measured Go heap peaked at 65.4 MiB; this excludes native/GPU memory.
 Backgrounding and resuming the activity retained the same running process.
 Both ZIP packaging and all native ELF load segments passed 16 KiB alignment.
+
+The 30 September 2026 package was rebuilt after the shared palette migration.
+The embedded native library records DCK v1.0.1; its four ELF load segments and
+APK library placement pass 16 KiB alignment. Desktop parity covers 309 sampled
+complete frames. The Pixel measurements above describe the 29 September build;
+the device was unavailable for a new run at this update.
 
 The complete export contains 12,500 frames over 250 seconds at 704 by 580
 pixels, with stereo 48 kHz music. The portfolio WebM uses VP9/Opus; the retained

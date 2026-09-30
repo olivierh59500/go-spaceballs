@@ -1,11 +1,12 @@
 package demo
 
 import (
+	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
-	"github.com/olivierh59500/democonstructionkit/render"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/go-spaceballs/assets"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
 )
@@ -18,12 +19,8 @@ type NoiseEffect struct {
 	poses   source.Animation
 	masks   *maskRing
 	texture [4]*ebiten.Image
-	packed  *ebiten.Image
-	pack    *ebiten.Shader
-	shader  *ebiten.Shader
-	palette []float32
-	packOp  ebiten.DrawRectShaderOptions
-	finalOp ebiten.DrawRectShaderOptions
+	lookup  *composite.BitplanePalette
+	palette [64]color.NRGBA
 	closed  bool
 }
 
@@ -54,17 +51,7 @@ func NewNoiseEffect() (*NoiseEffect, error) {
 }
 
 func newNoiseRenderer(model source.NoiseModel) (*NoiseEffect, error) {
-	pack, err := ebiten.NewShader([]byte(trailsPackShader))
-	if err != nil {
-		return nil, err
-	}
-	shader, err := ebiten.NewShader([]byte(noiseShader))
-	if err != nil {
-		pack.Deallocate()
-		return nil, err
-	}
-	e := &NoiseEffect{model: model,
-		pack: pack, shader: shader, masks: newMaskRing(), packed: render.NewSurface(Width, Height), palette: make([]float32, 192)}
+	e := &NoiseEffect{model: model, masks: newMaskRing()}
 	for i, bits := range model.Bits {
 		pixels, err := source.MonochromeImage(bits)
 		if err != nil {
@@ -74,11 +61,18 @@ func newNoiseRenderer(model source.NoiseModel) (*NoiseEffect, error) {
 		e.texture[i] = ebiten.NewImageFromImage(pixels)
 	}
 	for i, word := range model.Palette {
-		c := source.RGB12(word)
-		e.palette[3*i], e.palette[3*i+1], e.palette[3*i+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
+		e.palette[i] = source.RGB12(word)
 	}
-	e.packOp.Blend = ebiten.BlendCopy
-	e.finalOp.Uniforms = map[string]any{"Palette": e.palette}
+	var err error
+	e.lookup, err = composite.NewBitplanePalette(composite.BitplanePaletteConfig{
+		Width: Width, Height: Height, Planes: 6, Palette: e.palette[:],
+		Channels: []composite.BitplaneChannel{composite.BitplaneAlpha, composite.BitplaneAlpha,
+			composite.BitplaneAlpha, composite.BitplaneAlpha, composite.BitplaneAlpha, composite.BitplaneRed},
+	})
+	if err != nil {
+		e.Close()
+		return nil, err
+	}
 	return e, nil
 }
 
@@ -112,13 +106,12 @@ func (e *NoiseEffect) Draw(dst *ebiten.Image) {
 }
 
 func (e *NoiseEffect) drawPlanes(dst *ebiten.Image, display [5]int, texture int) {
-	for i := range e.packOp.Images {
-		e.packOp.Images[i] = e.masks.planes[display[i]]
+	var planes [6]*ebiten.Image
+	for i, index := range display {
+		planes[i] = e.masks.planes[index]
 	}
-	e.packed.DrawRectShader(Width, Height, e.pack, &e.packOp)
-	e.finalOp.Images[0], e.finalOp.Images[1], e.finalOp.Images[2] = e.packed,
-		e.masks.planes[display[4]], e.texture[texture]
-	dst.DrawRectShader(Width, Height, e.shader, &e.finalOp)
+	planes[5] = e.texture[texture]
+	drawBitplanes(e.lookup, dst, planes[:], e.palette[:])
 }
 
 func (e *NoiseEffect) Close() error {
@@ -129,24 +122,8 @@ func (e *NoiseEffect) Close() error {
 				texture.Deallocate()
 			}
 		}
-		e.packed.Deallocate()
-		e.pack.Deallocate()
-		e.shader.Deallocate()
+		e.lookup.Close()
 		e.closed = true
 	}
 	return nil
 }
-
-const noiseShader = `//kage:unit pixels
-package main
-
-var Palette [64]vec3
-
-func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	bits := imageSrc0At(texCoord)
-	fifth := step(0.5, imageSrc1At(texCoord).a)
-	dither := step(0.5, imageSrc2At(texCoord).r)
-	index := int(bits.r + bits.g*2 + bits.b*4 + bits.a*8 + fifth*16 + dither*32 + 0.5)
-	return vec4(Palette[index], 1)
-}
-`

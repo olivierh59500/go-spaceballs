@@ -100,8 +100,7 @@ func (e *DuetEffect) Draw(dst *ebiten.Image) {
 		return
 	}
 	for i, word := range e.clock.Palette {
-		c := source.RGB12(word)
-		e.raster.palette[3*i], e.raster.palette[3*i+1], e.raster.palette[3*i+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
+		e.raster.palette[i] = source.RGB12(word)
 	}
 	e.raster.drawPlanes(dst, e.clock.Display, e.clock.Texture)
 }

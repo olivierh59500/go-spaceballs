@@ -1,7 +1,7 @@
 # Spaceballs: State of the Art Go
 
 Native Go/Ebitengine conversion of the supplied Amiga production, using
-**Demo Construction Kit v1.0.0**
+**Demo Construction Kit v1.0.1**
 
 Run the complete production with its recovered music:
 
@@ -141,6 +141,15 @@ A full update/draw traversal captured 62 segment milestones without errors.
 Original-controller fixtures and the material shader pixel oracle pass. The
 [director verification](reference/DIRECTOR.md) records timing sources and the
 remaining differences at individual Amiga/GPU raster boundaries.
+
+Trails, Noise, Angular, Sliced, Ribbons and Duet use DCK's shared
+`composite.BitplanePalette`. The production supplies its retained poses, palette
+words and channel selection; DCK owns the four-plane draw or five/six-plane
+packing and palette passes. All 309 sampled full RGBA frames match the previous
+renderer across 5,106 rendered frames, with unchanged pass counts and 50 Hz
+timing. The independent six-plane decoder also checks opaque monochrome
+textures placed in Ebitengine's atlas. Frame fingerprints can be reproduced with
+`go run ./cmd/checkframes -output /path/to/frames.json`.
 
 [Scene inventory](SCENES.md) · [Reference manifest](reference/sources.json)
 · [Original loader](reference/LOADER.md) · [Verified animation banks](reference/ANIMATION.md)

@@ -2,10 +2,12 @@ package demo
 
 import (
 	"image"
+	"image/color"
 	"os"
 	"testing"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/democonstructionkit/render"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
 )
@@ -79,25 +81,30 @@ func (g *shaderCheck) Draw(dst *ebiten.Image) {
 		return
 	}
 	const size, span = 64, 64 * 64 / 8
-	pack, err := ebiten.NewShader([]byte(trailsPackShader))
+	colors := make([]color.NRGBA, len(g.palette))
+	for i, word := range g.palette {
+		colors[i] = source.RGB12(word)
+	}
+	lookup, err := composite.NewBitplanePalette(composite.BitplanePaletteConfig{
+		Width: size, Height: size, Planes: 6, Palette: colors,
+		Channels: []composite.BitplaneChannel{composite.BitplaneAlpha, composite.BitplaneAlpha,
+			composite.BitplaneAlpha, composite.BitplaneAlpha, composite.BitplaneAlpha, composite.BitplaneRed},
+	})
 	if err != nil {
 		g.err, g.done = err, true
 		return
 	}
-	defer pack.Deallocate()
-	shader, err := ebiten.NewShader([]byte(noiseShader))
-	if err != nil {
-		g.err, g.done = err, true
-		return
-	}
-	defer shader.Deallocate()
+	defer lookup.Close()
 	var planes [6]*ebiten.Image
 	for i := range planes {
 		pixels := make([]byte, size*size*4)
 		for y := 0; y < size; y++ {
 			for x := 0; x < size; x++ {
+				at := (y*size + x) * 4
+				if i == 5 {
+					pixels[at+3] = 255
+				}
 				if g.bits[i*span+y*(size/8)+x/8]>>uint(7-x%8)&1 != 0 {
-					at := (y*size + x) * 4
 					pixels[at], pixels[at+1], pixels[at+2], pixels[at+3] = 255, 255, 255, 255
 				}
 			}
@@ -111,17 +118,10 @@ func (g *shaderCheck) Draw(dst *ebiten.Image) {
 		}
 		defer planes[i].Deallocate()
 	}
-	packed := render.NewSurface(size, size)
-	defer packed.Deallocate()
-	packed.DrawRectShader(size, size, pack, &ebiten.DrawRectShaderOptions{
-		Images: [4]*ebiten.Image{planes[0], planes[1], planes[2], planes[3]}, Blend: ebiten.BlendCopy})
-	palette := make([]float32, 192)
-	for i, word := range g.palette {
-		c := source.RGB12(word)
-		palette[i*3], palette[i*3+1], palette[i*3+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
+	if err := lookup.Draw(dst, planes[:]); err != nil {
+		g.err, g.done = err, true
+		return
 	}
-	dst.DrawRectShader(size, size, shader, &ebiten.DrawRectShaderOptions{
-		Images: [4]*ebiten.Image{packed, planes[4], planes[5]}, Uniforms: map[string]any{"Palette": palette}})
 	g.pixels = make([]byte, size*size*4)
 	dst.ReadPixels(g.pixels)
 	g.done = true

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/democonstructionkit/render"
 	"github.com/olivierh59500/go-spaceballs/assets"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
@@ -18,9 +19,8 @@ type RibbonEffect struct {
 	planes  [4][2]*ebiten.Image
 	white   *ebiten.Image
 	batch   *render.Batch
-	shader  *ebiten.Shader
-	palette []float32
-	options ebiten.DrawRectShaderOptions
+	lookup  *composite.BitplanePalette
+	palette [16]color.NRGBA
 	closed  bool
 }
 
@@ -37,12 +37,15 @@ func NewRibbonEffect() (*RibbonEffect, error) {
 	if err != nil {
 		return nil, err
 	}
-	shader, err := ebiten.NewShader([]byte(ribbonShader))
+	e := &RibbonEffect{model: model, clock: source.NewRibbonClock(model), poses: poses,
+		white: ebiten.NewImage(1, 1), batch: render.NewBatch(4096)}
+	e.lookup, err = composite.NewBitplanePalette(composite.BitplanePaletteConfig{
+		Width: Width, Height: Height, Planes: 4, Palette: e.palette[:],
+	})
 	if err != nil {
+		e.white.Deallocate()
 		return nil, err
 	}
-	e := &RibbonEffect{model: model, clock: source.NewRibbonClock(model), poses: poses, shader: shader,
-		white: ebiten.NewImage(1, 1), batch: render.NewBatch(4096), palette: make([]float32, 48)}
 	e.white.Fill(color.White)
 	e.batch.Options.FillRule = ebiten.FillRuleEvenOdd
 	for i := range e.planes {
@@ -50,7 +53,6 @@ func NewRibbonEffect() (*RibbonEffect, error) {
 			e.planes[i][j] = render.NewSurface(Width, Height)
 		}
 	}
-	e.options.Uniforms = map[string]any{"Palette": e.palette}
 	return e, nil
 }
 
@@ -105,12 +107,11 @@ func (e *RibbonEffect) drawPose(group, frame, mirror int) {
 
 func (e *RibbonEffect) Draw(dst *ebiten.Image) {
 	for i, word := range e.clock.Palette {
-		c := source.RGB12(word)
-		e.palette[3*i], e.palette[3*i+1], e.palette[3*i+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
+		e.palette[i] = source.RGB12(word)
 	}
 	a, b := e.clock.Display[0], e.clock.Display[1]
-	e.options.Images = [4]*ebiten.Image{e.planes[a][0], e.planes[a][1], e.planes[b][0], e.planes[b][1]}
-	dst.DrawRectShader(Width, Height, e.shader, &e.options)
+	planes := [4]*ebiten.Image{e.planes[a][0], e.planes[a][1], e.planes[b][0], e.planes[b][1]}
+	drawBitplanes(e.lookup, dst, planes[:], e.palette[:])
 }
 
 func (e *RibbonEffect) Close() error {
@@ -121,22 +122,8 @@ func (e *RibbonEffect) Close() error {
 			}
 		}
 		e.white.Deallocate()
-		e.shader.Deallocate()
+		e.lookup.Close()
 		e.closed = true
 	}
 	return nil
 }
-
-const ribbonShader = `//kage:unit pixels
-package main
-
-var Palette [16]vec3
-
-func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	index := int(step(0.5, imageSrc0At(texCoord).a) +
-		2*step(0.5, imageSrc1At(texCoord).a) +
-		4*step(0.5, imageSrc2At(texCoord).a) +
-		8*step(0.5, imageSrc3At(texCoord).a))
-	return vec4(Palette[index], 1)
-}
-`
