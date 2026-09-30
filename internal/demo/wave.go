@@ -42,7 +42,7 @@ func NewWaveEffect() (*WaveEffect, error) {
 	e := &WaveEffect{raster: raster, model: model, clock: source.NewWaveClock(model), base: make(map[string]int)}
 	// The source addresses its mask four bytes before the working buffer,
 	// compensating the 32-pixel display-fetch lead used by both materials.
-	raster.maskShift[0] = 0
+	raster.offsets[0][0] = 0
 	for _, name := range []string{"small-turn", "small-dance", "small-final"} {
 		bank, err := source.LoadAnimation(assets.Files, name)
 		if err != nil {

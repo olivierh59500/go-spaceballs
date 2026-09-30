@@ -1,7 +1,7 @@
 # Spaceballs: State of the Art Go
 
 Native Go/Ebitengine conversion of the supplied Amiga production, using
-**Demo Construction Kit v1.0.4**
+**Demo Construction Kit v1.0.5**
 
 Run the complete production with its recovered music:
 
@@ -149,6 +149,10 @@ packing and palette passes. `composite.ContourBank` owns the six-slot and paired
 working masks, selective clears and reusable geometry batches. Shared fan,
 stroke and parity-edge builders preserve the original coordinate maps and
 buffer-pointer program. Pattern, Wave and Finale also use the retained bank.
+Their material now uses `BitplanePalette.DrawOffsets`: one texture supplies two
+independently shifted planes, while the contour keeps its own fetch offset.
+Fine-scroll delay, RGB12 palette and display crop remain original data; no local
+material shader or additional working image is needed.
 
 All 690 sampled full RGBA frames match the preceding renderer across 11,209
 rendered frames in all fourteen effect units, with unchanged pass counts and

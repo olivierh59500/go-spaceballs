@@ -1,6 +1,6 @@
 # Android
 
-The Android application runs the same Go production and DCK v1.0.4 as the
+The Android application runs the same Go production and DCK v1.0.5 as the
 desktop command, at 50 ticks per second. Its fixed canvas is fitted in landscape
 without stretching. The activity keeps the display awake while the demo runs
 and suspends rendering/audio when the application leaves the foreground.
@@ -58,9 +58,9 @@ The measured Go heap peaked at 65.4 MiB; this excludes native/GPU memory.
 Backgrounding and resuming the activity retained the same running process.
 Both ZIP packaging and all native ELF load segments passed 16 KiB alignment.
 
-The 30 September 2026 package was rebuilt after the shared contour and retained
-mask migration. The embedded native library records DCK v1.0.4; its four ELF
-load segments and APK library placement pass 16 KiB alignment. Desktop parity
+The 30 September 2026 package was rebuilt after the shared contour and offset
+material migrations. The embedded native library records DCK v1.0.5; its four
+ELF load segments and APK library placement pass 16 KiB alignment. Desktop parity
 covers 690 sampled complete frames through all fourteen effect units with the
 published module. The Pixel measurements above describe the 29 September build;
 the device was unavailable for a new run at this update.

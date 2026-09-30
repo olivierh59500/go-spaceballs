@@ -1,6 +1,7 @@
 package demo
 
 import (
+	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -14,19 +15,17 @@ import (
 // PatternEffect reconstructs the first musical scene from the authored material,
 // contour banks, integer motion tables and RGB12 palette program.
 type PatternEffect struct {
-	material  source.PatternMaterial
-	frames    [][]source.Polygon
-	state     source.PatternState
-	mask      *ebiten.Image
-	canvas    *ebiten.Image
-	texture   *ebiten.Image
-	bank      *composite.ContourBank
-	shader    *ebiten.Shader
-	palette   []float32
-	first     []float32
-	second    []float32
-	maskShift []float32
-	options   ebiten.DrawRectShaderOptions
+	material source.PatternMaterial
+	frames   [][]source.Polygon
+	state    source.PatternState
+	mask     *ebiten.Image
+	canvas   *ebiten.Image
+	texture  *ebiten.Image
+	bank     *composite.ContourBank
+	lookup   *composite.BitplanePalette
+	palette  [8]color.NRGBA
+	planes   [3]*ebiten.Image
+	offsets  [3][2]float32
 }
 
 func NewPatternEffect() (*PatternEffect, error) {
@@ -56,16 +55,19 @@ func NewPatternEffect() (*PatternEffect, error) {
 }
 
 func newPatternRenderer(material source.PatternMaterial) (*PatternEffect, error) {
-	shader, err := ebiten.NewShader([]byte(patternShader))
+	var colors [8]color.NRGBA
+	lookup, err := composite.NewBitplanePalette(composite.BitplanePaletteConfig{
+		Width: 640, Height: 512, Planes: 3, Palette: colors[:],
+		Channels: []composite.BitplaneChannel{composite.BitplaneAlpha, composite.BitplaneRed, composite.BitplaneRed},
+	})
 	if err != nil {
 		return nil, err
 	}
-	e := &PatternEffect{material: material, shader: shader,
+	e := &PatternEffect{material: material, lookup: lookup,
 		bank: newContourBank(640, 512, 1, 1, ebiten.Blend{}), canvas: render.NewSurface(342, Height), texture: ebiten.NewImageFromImage(material.Image()),
-		palette: make([]float32, 8*3), first: make([]float32, 2), second: make([]float32, 2), maskShift: []float32{32, 0}}
+		offsets: [3][2]float32{{32, 0}}}
 	e.mask = e.bank.Image(0, 0)
-	e.options.Images[0], e.options.Images[1] = e.mask, e.texture
-	e.options.Uniforms = map[string]any{"Palette": e.palette, "First": e.first, "Second": e.second, "MaskShift": e.maskShift}
+	e.planes = [3]*ebiten.Image{e.mask, e.texture, e.texture}
 	return e, nil
 }
 
@@ -87,13 +89,18 @@ func (e *PatternEffect) Draw(dst *ebiten.Image) {
 	})
 	for i, word := range e.state.Palette {
 		c := source.RGB12(word)
-		e.palette[3*i], e.palette[3*i+1], e.palette[3*i+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
+		e.palette[i] = color.NRGBA{R: c.R, G: c.G, B: c.B, A: c.A}
 	}
 	// Display fetch begins 32 low-resolution pixels before the visible window.
 	// The first material plane also keeps the source's fine-scroll delay.
-	e.first[0], e.first[1] = float32(e.state.X+17), float32(e.state.Y)
-	e.second[0], e.second[1] = 32, float32(e.state.SecondY)
-	e.canvas.DrawRectShader(640, 512, e.shader, &e.options)
+	e.offsets[1] = [2]float32{float32(e.state.X + 17), float32(e.state.Y)}
+	e.offsets[2] = [2]float32{32, float32(e.state.SecondY)}
+	if err := e.lookup.SetPalette(e.palette[:]); err != nil {
+		panic(err)
+	}
+	if err := e.lookup.DrawOffsets(e.canvas, e.planes[:], e.offsets[:]); err != nil {
+		panic(err)
+	}
 	var op ebiten.DrawImageOptions
 	// DIWSTRT $1c71 and DIWSTOP $3ec7 expose 342 low-resolution pixels.
 	op.GeoM.Scale(float64(Width)/float64(e.canvas.Bounds().Dx()), 1)
@@ -104,22 +111,5 @@ func (e *PatternEffect) Close() error {
 	e.bank.Close()
 	e.canvas.Deallocate()
 	e.texture.Deallocate()
-	e.shader.Deallocate()
-	return nil
+	return e.lookup.Close()
 }
-
-const patternShader = `//kage:unit pixels
-package main
-
-var First vec2
-var Second vec2
-var MaskShift vec2
-var Palette [8]vec3
-
-func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	body := int(step(0.5, imageSrc0At(texCoord + MaskShift).a))
-	one := int(step(0.5, imageSrc1At(texCoord + First).r))
-	two := int(step(0.5, imageSrc1At(texCoord + Second).r))
-	return vec4(Palette[body + one*2 + two*4], 1)
-}
-`

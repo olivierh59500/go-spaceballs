@@ -36,7 +36,7 @@ func NewFinaleEffect() (*FinaleEffect, error) {
 	}
 	raster.canvas.Deallocate()
 	raster.canvas = render.NewSurface(Width, Height)
-	raster.maskShift[0] = 0
+	raster.offsets[0][0] = 0
 	e := &FinaleEffect{model: model, clock: source.NewFinaleClock(model), raster: raster, base: make(map[string]int), show: true}
 	for _, name := range []string{"final-a", "final-b", "final-c"} {
 		bank, err := source.LoadAnimation(assets.Files, name)
