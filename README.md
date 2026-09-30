@@ -1,7 +1,7 @@
 # Spaceballs: State of the Art Go
 
 Native Go/Ebitengine conversion of the supplied Amiga production, using
-**Demo Construction Kit v1.0.8**
+**Demo Construction Kit v1.0.9**
 
 Run the complete production with its recovered music:
 
@@ -159,6 +159,16 @@ colors and black body material. The intro supplies its 24-pixel columns,
 36-pixel first row, 16-pixel later rows, skipped palette row and source words.
 DCK owns the small color-bank image and lookup pass. Palette storage drops
 from 408,320 to 2,040 bytes without changing the upload size or adding a pass.
+
+The State/Of/The/Art, credit, dragon and closing pages use
+`effects.IndexedImage`: DCK owns the indexed-color conversion, signed RGB12
+palette transitions, absolute clock and output resources. The demo supplies
+decoded artwork, original palette words, fade endpoints, crop and placement.
+The complete director retains all 1,218 sampled RGBA frames over 12,414 drawn
+updates, including the first 24 ticks at every segment boundary. The shared
+renderer keeps the preceding conversion surface and two-pass image path.
+Use `go run ./cmd/checkframes -production -output /path/to/director.json`
+to reproduce the full traversal with every intervening update drawn.
 
 All 690 sampled full RGBA frames match the preceding renderer across 11,209
 rendered frames in all fourteen effect units, with unchanged pass counts and
