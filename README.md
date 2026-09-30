@@ -1,7 +1,7 @@
 # Spaceballs: State of the Art Go
 
 Native Go/Ebitengine conversion of the supplied Amiga production, using
-**Demo Construction Kit v1.0.9**
+**Demo Construction Kit v1.0.11**
 
 Run the complete production with its recovered music:
 
@@ -159,6 +159,13 @@ colors and black body material. The intro supplies its 24-pixel columns,
 36-pixel first row, 16-pixel later rows, skipped palette row and source words.
 DCK owns the small color-bank image and lookup pass. Palette storage drops
 from 408,320 to 2,040 bytes without changing the upload size or adding a pass.
+
+Tiles and Vote use `effects.IndexedImageBank`: 21 indexed textures and two small
+palettes replace 42 precolored textures. Three retained slots keep original
+working/display selection and placement. The texture payload per instance drops
+from 1,731,072 to 865,536 bytes, with three direct lookup draws and no conversion
+surface. Every pixel of all 293 native controller ticks matches independent CPU
+composition; the complete director retains all 1,218 frame samples.
 
 The State/Of/The/Art, credit, dragon and closing pages use
 `effects.IndexedImage`: DCK owns the indexed-color conversion, signed RGB12
