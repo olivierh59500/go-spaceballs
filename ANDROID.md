@@ -73,6 +73,12 @@ material. It retains all 690 published-module frame samples and reduces the
 Blocks/Outline palette texture to 2,040 bytes. Its four native ELF load segments
 and APK library placement pass 16 KiB alignment.
 
+This v1.0.8 package was installed on the Pixel 10a and completed its director
+through the closing page. Five-second samples measured 49.2–50.9 ticks/s,
+58.9–60.1 displayed frames/s and a peak Go heap of 66.5 MiB without an observed
+crash. Go heap excludes native/GPU memory; this is a runtime check rather than
+a new hardware visual-reference comparison.
+
 The complete export contains 12,500 frames over 250 seconds at 704 by 580
 pixels, with stereo 48 kHz music. The portfolio WebM uses VP9/Opus; the retained
 MP4 uses H.264/AAC. Both loading and main music are present. A separate
