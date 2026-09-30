@@ -1,11 +1,11 @@
 package demo
 
 import (
-	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/democonstructionkit/render"
 	"github.com/olivierh59500/go-spaceballs/assets"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
@@ -20,9 +20,8 @@ type PatternEffect struct {
 	mask      *ebiten.Image
 	canvas    *ebiten.Image
 	texture   *ebiten.Image
-	white     *ebiten.Image
+	bank      *composite.ContourBank
 	shader    *ebiten.Shader
-	batch     *render.Batch
 	palette   []float32
 	first     []float32
 	second    []float32
@@ -62,11 +61,9 @@ func newPatternRenderer(material source.PatternMaterial) (*PatternEffect, error)
 		return nil, err
 	}
 	e := &PatternEffect{material: material, shader: shader,
-		mask: render.NewSurface(640, 512), canvas: render.NewSurface(342, Height), texture: ebiten.NewImageFromImage(material.Image()),
-		white: ebiten.NewImage(1, 1), batch: render.NewBatch(4096),
+		bank: newContourBank(640, 512, 1, 1, ebiten.Blend{}), canvas: render.NewSurface(342, Height), texture: ebiten.NewImageFromImage(material.Image()),
 		palette: make([]float32, 8*3), first: make([]float32, 2), second: make([]float32, 2), maskShift: []float32{32, 0}}
-	e.white.Fill(color.White)
-	e.batch.Options.FillRule = ebiten.FillRuleEvenOdd
+	e.mask = e.bank.Image(0, 0)
 	e.options.Images[0], e.options.Images[1] = e.mask, e.texture
 	e.options.Uniforms = map[string]any{"Palette": e.palette, "First": e.first, "Second": e.second, "MaskShift": e.maskShift}
 	return e, nil
@@ -80,18 +77,14 @@ func (e *PatternEffect) Update(f kit.Frame) error {
 func (e *PatternEffect) SetTick(tick int) { e.state = e.material.State(tick) }
 
 func (e *PatternEffect) Draw(dst *ebiten.Image) {
-	e.mask.Clear()
-	if e.state.Frame >= 0 && e.state.Frame < len(e.frames) {
-		e.batch.Begin(e.mask, e.white)
-		// This scene merges all contour commands into one XOR-filled body plane.
-		for _, polygon := range e.frames[e.state.Frame] {
-			if len(polygon.Points) < 3 {
-				continue
-			}
-			filledContour(e.batch, polygon.Points, false)
+	paintContours(e.bank, 0, 0, true, func(batch *render.Batch) {
+		if e.state.Frame < 0 || e.state.Frame >= len(e.frames) {
+			return
 		}
-		e.batch.Flush()
-	}
+		for _, polygon := range e.frames[e.state.Frame] {
+			filledContour(batch, polygon.Points, false)
+		}
+	})
 	for i, word := range e.state.Palette {
 		c := source.RGB12(word)
 		e.palette[3*i], e.palette[3*i+1], e.palette[3*i+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
@@ -108,10 +101,9 @@ func (e *PatternEffect) Draw(dst *ebiten.Image) {
 }
 
 func (e *PatternEffect) Close() error {
-	e.mask.Deallocate()
+	e.bank.Close()
 	e.canvas.Deallocate()
 	e.texture.Deallocate()
-	e.white.Deallocate()
 	e.shader.Deallocate()
 	return nil
 }

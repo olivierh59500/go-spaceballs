@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/democonstructionkit/render"
 	"github.com/olivierh59500/go-spaceballs/assets"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
@@ -17,17 +18,14 @@ type OpeningEffect struct {
 	clock   *source.OpeningClock
 	banks   map[string]source.Animation
 	planes  [3][2]*ebiten.Image
-	white   *ebiten.Image
-	shader  *ebiten.Shader
-	batch   *render.Batch
-	palette []float32
-	options ebiten.DrawRectShaderOptions
+	bank    *composite.ContourBank
+	lookup  *composite.BitplanePalette
+	palette [4]color.NRGBA
 	closed  bool
 }
 
 func NewOpeningEffect() (*OpeningEffect, error) {
-	e := &OpeningEffect{clock: source.NewOpeningClock(), banks: make(map[string]source.Animation),
-		batch: render.NewBatch(4096), palette: make([]float32, 12)}
+	e := &OpeningEffect{clock: source.NewOpeningClock(), banks: make(map[string]source.Animation)}
 	for _, name := range []string{"hands", "opening", "first"} {
 		bank, err := source.LoadAnimation(assets.Files, name)
 		if err != nil {
@@ -35,21 +33,18 @@ func NewOpeningEffect() (*OpeningEffect, error) {
 		}
 		e.banks[name] = bank
 	}
-	shader, err := ebiten.NewShader([]byte(openingShader))
+	e.bank = newContourBank(Width, Height, 3, 2, ebiten.BlendXor)
+	var err error
+	e.lookup, err = composite.NewBitplanePalette(composite.BitplanePaletteConfig{Width: Width, Height: Height, Planes: 2, Palette: e.palette[:]})
 	if err != nil {
+		e.bank.Close()
 		return nil, err
 	}
-	e.shader = shader
 	for i := range e.planes {
 		for j := range e.planes[i] {
-			e.planes[i][j] = render.NewSurface(Width, Height)
+			e.planes[i][j] = e.bank.Image(i, j)
 		}
 	}
-	e.white = ebiten.NewImage(1, 1)
-	e.white.Fill(color.White)
-	e.batch.Options.FillRule = ebiten.FillRuleEvenOdd
-	e.batch.Options.Blend = ebiten.BlendXor
-	e.options.Uniforms = map[string]any{"Palette": e.palette}
 	return e, nil
 }
 
@@ -62,11 +57,7 @@ func (e *OpeningEffect) SetTick(tick int) {
 	tick = max(0, min(tick, source.OpeningTicks-1))
 	if e.clock.Tick > tick+1 {
 		e.clock = source.NewOpeningClock()
-		for _, planes := range e.planes {
-			for _, plane := range planes {
-				plane.Clear()
-			}
-		}
+		e.bank.Clear()
 	}
 	for e.clock.Tick <= tick {
 		if e.clock.Step() {
@@ -77,19 +68,26 @@ func (e *OpeningEffect) SetTick(tick int) {
 
 func (e *OpeningEffect) prepare() {
 	c := e.clock
-	planes := e.planes[c.Current]
 	if c.SecondOnly {
-		planes[1].Clear()
+		paintContours(e.bank, c.Current, 1, true, nil)
 	} else {
-		planes[0].Clear()
+		paintContours(e.bank, c.Current, 0, true, nil)
 		if c.FillSecond {
-			planes[1].Clear()
+			paintContours(e.bank, c.Current, 1, true, nil)
 		}
 	}
 	if !c.Draw {
 		return
 	}
 	frame := e.banks[c.Bank].Frames[c.Frame]
+	point := func(p source.Point) ebiten.Vertex {
+		x, y := int(p.X)*351/256, int(p.Y)*289/204
+		if c.SecondOnly {
+			x -= 15
+			y = min(289, int(p.Y)*350/204+8)
+		}
+		return render.Vertex(float64(x), float64(y), 0, 0, color.White)
+	}
 	for plane := 0; plane < 2; plane++ {
 		bit := plane
 		if c.SecondOnly {
@@ -98,84 +96,35 @@ func (e *OpeningEffect) prepare() {
 		if bit < 0 {
 			continue
 		}
-		e.batch.Begin(planes[plane], e.white)
-		for _, polygon := range frame {
-			if polygon.Mask>>uint(bit)&1 == 0 || len(polygon.Points) < 3 {
-				continue
-			}
-			point := func(p source.Point) ebiten.Vertex {
-				x, y := int(p.X)*351/256, int(p.Y)*289/204
-				if c.SecondOnly {
-					x -= 15
-					y = min(289, int(p.Y)*350/204+8)
+		paintContours(e.bank, c.Current, plane, false, func(batch *render.Batch) {
+			for _, polygon := range frame {
+				if polygon.Mask>>uint(bit)&1 == 0 || len(polygon.Points) < 3 {
+					continue
 				}
-				return render.Vertex(float64(x), float64(y), 0, 0, color.White)
-			}
-			if plane == 1 && !c.FillSecond {
-				// Once the source stops clearing/filling this plane, it adds edges
-				// to the retained image rather than XORing another filled silhouette.
-				for i, p := range polygon.Points {
-					a, b := point(p), point(polygon.Points[(i+1)%len(polygon.Points)])
-					dx, dy := float64(b.DstX-a.DstX), float64(b.DstY-a.DstY)
-					length := math.Hypot(dx, dy)
-					if length == 0 {
-						continue
-					}
-					nx, ny := float32(-dy/length/2), float32(dx/length/2)
-					q := [4]ebiten.Vertex{a, b, b, a}
-					q[0].DstX += nx
-					q[0].DstY += ny
-					q[1].DstX += nx
-					q[1].DstY += ny
-					q[2].DstX -= nx
-					q[2].DstY -= ny
-					q[3].DstX -= nx
-					q[3].DstY -= ny
-					e.batch.Quad(q)
+				at := func(i int) ebiten.Vertex { return point(polygon.Points[i]) }
+				if plane == 1 && !c.FillSecond {
+					batch.StrokeContour(len(polygon.Points), at, render.ContourStroke{})
+				} else {
+					batch.Fan(len(polygon.Points), at)
 				}
-				continue
 			}
-			first := point(polygon.Points[0])
-			for i := 1; i+1 < len(polygon.Points); i++ {
-				e.batch.Triangle(first, point(polygon.Points[i]), point(polygon.Points[i+1]))
-			}
-		}
-		e.batch.Flush()
+		})
 	}
 }
 
 func (e *OpeningEffect) Draw(dst *ebiten.Image) {
 	for i, word := range e.clock.Palette {
-		c := source.RGB12(word)
-		e.palette[i*3], e.palette[i*3+1], e.palette[i*3+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
+		e.palette[i] = source.RGB12(word)
 	}
-	e.options.Images[0] = e.planes[e.clock.Display[0]][0]
-	e.options.Images[1] = e.planes[e.clock.Display[1]][1]
-	dst.DrawRectShader(Width, Height, e.shader, &e.options)
+	planes := [2]*ebiten.Image{e.planes[e.clock.Display[0]][0], e.planes[e.clock.Display[1]][1]}
+	drawBitplanes(e.lookup, dst, planes[:], e.palette[:])
 }
 
 func (e *OpeningEffect) Close() error {
 	if !e.closed {
-		for _, planes := range e.planes {
-			for _, plane := range planes {
-				plane.Deallocate()
-			}
-		}
-		e.white.Deallocate()
-		e.shader.Deallocate()
+		e.bank.Close()
+		e.lookup.Close()
 		e.closed = true
 	}
 	return nil
 }
-
-const openingShader = `//kage:unit pixels
-package main
-
-var Palette [4]vec3
-
-func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	one := int(step(0.5, imageSrc0At(texCoord).a))
-	two := int(step(0.5, imageSrc1At(texCoord).a))
-	return vec4(Palette[one + two*2], 1)
-}
-`

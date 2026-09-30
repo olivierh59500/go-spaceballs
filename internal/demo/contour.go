@@ -19,11 +19,5 @@ func contourVertex(p source.Point, zoom bool) ebiten.Vertex {
 }
 
 func filledContour(batch *render.Batch, points []source.Point, zoom bool) {
-	if len(points) < 3 {
-		return
-	}
-	first := contourVertex(points[0], zoom)
-	for i := 1; i+1 < len(points); i++ {
-		batch.Triangle(first, contourVertex(points[i], zoom), contourVertex(points[i+1], zoom))
-	}
+	batch.Fan(len(points), func(i int) ebiten.Vertex { return contourVertex(points[i], zoom) })
 }

@@ -1,22 +1,23 @@
 package demo
 
 import (
+	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/go-spaceballs/assets"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
 )
 
 type DuetEffect struct {
-	model   source.DuetModel
-	clock   *source.DuetClock
-	banks   map[string]source.Animation
-	raster  *NoiseEffect
-	ending  *ebiten.Shader
-	colors  []float32
-	options ebiten.DrawRectShaderOptions
+	model  source.DuetModel
+	clock  *source.DuetClock
+	banks  map[string]source.Animation
+	raster *NoiseEffect
+	ending *composite.BitplanePalette
+	colors [2]color.NRGBA
 }
 
 func retainedMaterial() (source.NoiseModel, error) {
@@ -54,13 +55,13 @@ func NewDuetEffect() (*DuetEffect, error) {
 	if err != nil {
 		return nil, err
 	}
-	ending, err := ebiten.NewShader([]byte(duetEndingShader))
+	ending, err := composite.NewBitplanePalette(composite.BitplanePaletteConfig{Width: Width, Height: Height, Planes: 1, Palette: make([]color.NRGBA, 2), Channels: []composite.BitplaneChannel{composite.BitplaneRed}})
 	if err != nil {
 		raster.Close()
 		return nil, err
 	}
 	e := &DuetEffect{model: model, clock: source.NewDuetClock(model), raster: raster, ending: ending,
-		banks: make(map[string]source.Animation), colors: make([]float32, 6)}
+		banks: make(map[string]source.Animation)}
 	for _, name := range []string{"two-body-a", "two-body-b"} {
 		e.banks[name], err = source.LoadAnimation(assets.Files, name)
 		if err != nil {
@@ -68,7 +69,6 @@ func NewDuetEffect() (*DuetEffect, error) {
 			return nil, err
 		}
 	}
-	e.options.Uniforms = map[string]any{"Colors": e.colors}
 	return e, nil
 }
 
@@ -89,14 +89,14 @@ func (e *DuetEffect) Update(f kit.Frame) error {
 func (e *DuetEffect) Draw(dst *ebiten.Image) {
 	if e.clock.Ending {
 		for i, word := range e.clock.EndingColors {
-			c := source.RGB12(word)
-			e.colors[3*i], e.colors[3*i+1], e.colors[3*i+2] = float32(c.R)/255, float32(c.G)/255, float32(c.B)/255
+			e.colors[i] = source.RGB12(word)
 		}
-		e.options.Images[0] = nil
-		if e.clock.EndingTexture >= 0 {
-			e.options.Images[0] = e.raster.texture[e.clock.EndingTexture]
+		if e.clock.EndingTexture < 0 {
+			dst.Fill(e.colors[0])
+		} else {
+			planes := [1]*ebiten.Image{e.raster.texture[e.clock.EndingTexture]}
+			drawBitplanes(e.ending, dst, planes[:], e.colors[:])
 		}
-		dst.DrawRectShader(Width, Height, e.ending, &e.options)
 		return
 	}
 	for i, word := range e.clock.Palette {
@@ -104,13 +104,4 @@ func (e *DuetEffect) Draw(dst *ebiten.Image) {
 	}
 	e.raster.drawPlanes(dst, e.clock.Display, e.clock.Texture)
 }
-func (e *DuetEffect) Close() error { e.ending.Deallocate(); return e.raster.Close() }
-
-const duetEndingShader = `//kage:unit pixels
-package main
-var Colors [2]vec3
-func Fragment(position vec4,texCoord vec2,color vec4) vec4 {
-	bit:=int(step(0.5,imageSrc0At(texCoord).r))
-	return vec4(Colors[bit],1)
-}
-`
+func (e *DuetEffect) Close() error { e.ending.Close(); return e.raster.Close() }

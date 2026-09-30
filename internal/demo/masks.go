@@ -1,59 +1,51 @@
 package demo
 
 import (
-	"image/color"
-	"math"
-
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/democonstructionkit/render"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
+	"image/color"
 )
 
-// maskRing is shared by productions that retain six monochrome source poses.
-// A controller chooses the working/display masks; this renderer owns geometry.
 type maskRing struct {
+	bank   *composite.ContourBank
 	planes [6]*ebiten.Image
-	white  *ebiten.Image
-	batch  *render.Batch
+}
+
+func newContourBank(width, height, slots, layers int, blend ebiten.Blend) *composite.ContourBank {
+	bank, err := composite.NewContourBank(composite.ContourBankConfig{Width: width, Height: height, Slots: slots, Layers: layers, FillRule: ebiten.FillRuleEvenOdd, Blend: blend, BatchTriangles: 4096})
+	if err != nil {
+		panic(err)
+	}
+	return bank
+}
+
+func paintContours(bank *composite.ContourBank, slot, layer int, clear bool, draw func(*render.Batch)) {
+	if err := bank.Paint(slot, layer, clear, draw); err != nil {
+		panic(err)
+	}
 }
 
 func newMaskRing() *maskRing {
-	r := &maskRing{white: ebiten.NewImage(1, 1), batch: render.NewBatch(4096)}
-	r.white.Fill(color.White)
+	r := &maskRing{bank: newContourBank(Width, Height, 6, 1, ebiten.Blend{})}
 	for i := range r.planes {
-		r.planes[i] = render.NewSurface(Width, Height)
+		r.planes[i] = r.bank.Image(i, 0)
 	}
-	r.batch.Options.FillRule = ebiten.FillRuleEvenOdd
 	return r
 }
-
-func (r *maskRing) clear() {
-	for _, plane := range r.planes {
-		plane.Clear()
-	}
-}
+func (r *maskRing) clear() { r.bank.Clear() }
+func (r *maskRing) close() { r.bank.Close() }
 
 func (r *maskRing) prepare(index int, frame []source.Polygon, zoom bool) {
-	plane := r.planes[index]
-	plane.Clear()
-	r.batch.Begin(plane, r.white)
-	for _, polygon := range frame {
-		filledContour(r.batch, polygon.Points, zoom)
-	}
-	r.batch.Flush()
-}
-
-func (r *maskRing) close() {
-	for _, plane := range r.planes {
-		plane.Deallocate()
-	}
-	r.white.Deallocate()
+	paintContours(r.bank, index, 0, true, func(batch *render.Batch) {
+		for _, p := range frame {
+			filledContour(batch, p.Points, zoom)
+		}
+	})
 }
 
 func (r *maskRing) prepareOutline(index int, frame []source.Polygon, mirror bool) {
-	plane := r.planes[index]
-	plane.Clear()
-	r.batch.Begin(plane, r.white)
 	point := func(p source.Point) ebiten.Vertex {
 		x := int(p.X)
 		if mirror {
@@ -61,37 +53,14 @@ func (r *maskRing) prepareOutline(index int, frame []source.Polygon, mirror bool
 		}
 		return render.Vertex(float64(x*351/256), float64(int(p.Y)*289/204), 0, 0, color.White)
 	}
-	for _, polygon := range frame {
-		for i, p := range polygon.Points {
-			a, b := point(p), point(polygon.Points[(i+1)%len(polygon.Points)])
-			dx, dy := float64(b.DstX-a.DstX), float64(b.DstY-a.DstY)
-			length := math.Hypot(dx, dy)
-			if length == 0 || dy == 0 {
-				continue
-			}
-			nx, ny := float32(-dy/length/2), float32(dx/length/2)
-			q := [4]ebiten.Vertex{a, b, b, a}
-			q[0].DstX += nx
-			q[0].DstY += ny
-			q[1].DstX += nx
-			q[1].DstY += ny
-			q[2].DstX -= nx
-			q[2].DstY -= ny
-			q[3].DstX -= nx
-			q[3].DstY -= ny
-			r.batch.Quad(q)
+	paintContours(r.bank, index, 0, true, func(batch *render.Batch) {
+		for _, p := range frame {
+			batch.StrokeContour(len(p.Points), func(i int) ebiten.Vertex { return point(p.Points[i]) }, render.ContourStroke{SkipHorizontal: true})
 		}
-	}
-	r.batch.Flush()
+	})
 }
 
-// prepareSliced preserves the source's edge-endpoint Y exchange in its second
-// bank. Ray parity spans let those modified edges fill without assuming a
-// conventional closed silhouette after the exchange.
 func (r *maskRing) prepareSliced(index int, frame []source.Polygon, zoom, exchangeY bool) {
-	plane := r.planes[index]
-	plane.Clear()
-	r.batch.Begin(plane, r.white)
 	point := func(p source.Point) ebiten.Vertex {
 		x, y := int(p.X)*351/256, int(p.Y)*289/204
 		if zoom {
@@ -100,22 +69,9 @@ func (r *maskRing) prepareSliced(index int, frame []source.Polygon, zoom, exchan
 		}
 		return render.Vertex(float64(x), float64(y), 0, 0, color.White)
 	}
-	for _, polygon := range frame {
-		if len(polygon.Points) < 3 {
-			continue
+	paintContours(r.bank, index, 0, true, func(batch *render.Batch) {
+		for _, p := range frame {
+			batch.ParityContour(len(p.Points), func(i int) ebiten.Vertex { return point(p.Points[i]) }, render.ParityContour{RayX: -1, SwapY: exchangeY})
 		}
-		for i, p := range polygon.Points {
-			a, b := point(p), point(polygon.Points[(i+1)%len(polygon.Points)])
-			if exchangeY {
-				a.DstY, b.DstY = b.DstY, a.DstY
-			}
-			if a.DstY == b.DstY {
-				continue
-			}
-			leftA, leftB := a, b
-			leftA.DstX, leftB.DstX = -1, -1
-			r.batch.Quad([4]ebiten.Vertex{a, b, leftB, leftA})
-		}
-	}
-	r.batch.Flush()
+	})
 }
