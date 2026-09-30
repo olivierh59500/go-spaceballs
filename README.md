@@ -1,7 +1,7 @@
 # Spaceballs: State of the Art Go
 
 Native Go/Ebitengine conversion of the supplied Amiga production, using
-**Demo Construction Kit v1.0.5**
+**Demo Construction Kit v1.0.8**
 
 Run the complete production with its recovered music:
 
@@ -153,6 +153,12 @@ Their material now uses `BitplanePalette.DrawOffsets`: one texture supplies two
 independently shifted planes, while the contour keeps its own fetch offset.
 Fine-scroll delay, RGB12 palette and display crop remain original data; no local
 material shader or additional working image is needed.
+
+Blocks and Outline use `composite.PaletteGrid` for their background/shadow
+colors and black body material. The intro supplies its 24-pixel columns,
+36-pixel first row, 16-pixel later rows, skipped palette row and source words.
+DCK owns the small color-bank image and lookup pass. Palette storage drops
+from 408,320 to 2,040 bytes without changing the upload size or adding a pass.
 
 All 690 sampled full RGBA frames match the preceding renderer across 11,209
 rendered frames in all fourteen effect units, with unchanged pass counts and

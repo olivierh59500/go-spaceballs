@@ -1,6 +1,6 @@
 # Android
 
-The Android application runs the same Go production and DCK v1.0.5 as the
+The Android application runs the same Go production and DCK v1.0.8 as the
 desktop command, at 50 ticks per second. Its fixed canvas is fitted in landscape
 without stretching. The activity keeps the display awake while the demo runs
 and suspends rendering/audio when the application leaves the foreground.
@@ -67,6 +67,11 @@ completed the whole sequence through its closing page. Five-second measurements
 recorded 49.8–50.9 ticks/s, 57.0–60.1 displayed frames/s and a peak Go heap of
 67.0 MiB, excluding native/GPU memory. No crash was observed. This runtime check
 does not replace the separate visual-reference comparisons.
+
+The subsequent DCK v1.0.8 ARM64 package includes the shared spatial palette
+material. It retains all 690 published-module frame samples and reduces the
+Blocks/Outline palette texture to 2,040 bytes. Its four native ELF load segments
+and APK library placement pass 16 KiB alignment.
 
 The complete export contains 12,500 frames over 250 seconds at 704 by 580
 pixels, with stereo 48 kHz music. The portfolio WebM uses VP9/Opus; the retained

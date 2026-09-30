@@ -1,12 +1,12 @@
 package demo
 
 import (
-	"image"
+	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
-	"github.com/olivierh59500/democonstructionkit/render"
+	"github.com/olivierh59500/democonstructionkit/composite"
 	"github.com/olivierh59500/go-spaceballs/assets"
 	"github.com/olivierh59500/go-spaceballs/internal/source"
 )
@@ -14,18 +14,15 @@ import (
 // BlocksEffect shares the contour/ring-mask renderer with the neighboring
 // scenes, while retaining the authored corner palettes and two-plane shadow.
 type BlocksEffect struct {
-	model       source.BlockModel
-	clock       *source.BlocksClock
-	animation   source.Animation
-	masks       *maskRing
-	palette     *ebiten.Image
-	paletteSub  *ebiten.Image
-	pixels      []byte
-	shader      *ebiten.Shader
-	options     ebiten.DrawRectShaderOptions
-	shadowShift []float32
-	closed      bool
-	dirty       bool
+	model     source.BlockModel
+	clock     *source.BlocksClock
+	animation source.Animation
+	masks     *maskRing
+	grid      *composite.PaletteGrid
+	colors    [2][17 * 15]color.NRGBA
+	material  composite.PaletteGridState
+	closed    bool
+	dirty     bool
 }
 
 func NewBlocksEffect() (*BlocksEffect, error) {
@@ -50,16 +47,18 @@ func NewBlocksEffect() (*BlocksEffect, error) {
 }
 
 func newBlocksRenderer() (*BlocksEffect, error) {
-	shader, err := ebiten.NewShader([]byte(blocksShader))
+	black := color.NRGBA{A: 255}
+	grid, err := composite.NewPaletteGrid(composite.PaletteGridConfig{
+		Width: Width, Height: Height, Columns: 15, Rows: 17,
+		X:                composite.PaletteGridAxis{CellSize: 24, Offset: 8},
+		Y:                composite.PaletteGridAxis{CellSize: 16, FirstSpan: 36, Indices: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16}},
+		ControlThreshold: .5, BodyColor: &black,
+	})
 	if err != nil {
 		return nil, err
 	}
-	e := &BlocksEffect{shader: shader, pixels: make([]byte, 30*17*4), dirty: true, shadowShift: make([]float32, 2)}
+	e := &BlocksEffect{grid: grid, dirty: true}
 	e.masks = newMaskRing()
-	e.palette = render.NewSurface(Width, Height)
-	e.paletteSub = e.palette.SubImage(image.Rect(0, 0, 30, 17)).(*ebiten.Image)
-	e.options.Images[2] = e.palette
-	e.options.Uniforms = map[string]any{"ShadowShift": e.shadowShift}
 	return e, nil
 }
 
@@ -90,52 +89,27 @@ func (e *BlocksEffect) drawGrid(dst *ebiten.Image, background, shadow [17][15]ui
 	if e.dirty {
 		for row := 0; row < 17; row++ {
 			for col := 0; col < 15; col++ {
-				for plane, word := range [2]uint16{background[row][col], shadow[row][col]} {
-					at := (row*30 + col + plane*15) * 4
+				for bank, word := range [2]uint16{background[row][col], shadow[row][col]} {
 					c := source.RGB12(word)
-					e.pixels[at], e.pixels[at+1], e.pixels[at+2], e.pixels[at+3] = c.R, c.G, c.B, 255
+					e.colors[bank][row*15+col] = color.NRGBA{R: c.R, G: c.G, B: c.B, A: 255}
 				}
 			}
 		}
-		// Only 2,040 bytes of palette data are uploaded; geometry stays on the GPU.
-		e.paletteSub.WritePixels(e.pixels)
+		if err := e.grid.SetColors(e.colors[0][:], e.colors[1][:]); err != nil {
+			panic(err)
+		}
 		e.dirty = false
 	}
-	e.options.Images[0], e.options.Images[1] = e.masks.planes[display[0]], e.masks.planes[display[1]]
-	dst.DrawRectShader(Width, Height, e.shader, &e.options)
+	if err := e.grid.Draw(dst, e.masks.planes[display[1]], e.masks.planes[display[0]], e.material); err != nil {
+		panic(err)
+	}
 }
 
 func (e *BlocksEffect) Close() error {
 	if !e.closed {
 		e.masks.close()
-		e.palette.Deallocate()
-		e.shader.Deallocate()
+		e.grid.Close()
 		e.closed = true
 	}
 	return nil
 }
-
-const blocksShader = `//kage:unit pixels
-package main
-
-var ShadowShift vec2
-
-func Fragment(position vec4, texCoord vec2, color vec4) vec4 {
-	p := texCoord - imageSrc0Origin()
-	body := step(0.5, imageSrc0At(texCoord).a)
-	shadow := step(0.5, imageSrc1At(texCoord + ShadowShift).a)
-	if body > 0.5 {
-		return vec4(0, 0, 0, 1)
-	}
-	row := 0.0
-	if p.y >= 36 {
-		row = 1 + floor((p.y - 36)/16)
-		if row >= 13 {
-			row += 1
-		}
-		row = min(16, row)
-	}
-	col := min(14, max(0, floor((p.x + 8)/24)))
-	return imageSrc2At(imageSrc0Origin() + vec2(col + shadow*15, row) + vec2(0.5))
-}
-`

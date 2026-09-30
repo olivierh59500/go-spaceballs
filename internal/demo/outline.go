@@ -29,7 +29,7 @@ func NewOutlineEffect() (*OutlineEffect, error) {
 		return nil, err
 	}
 	e := &OutlineEffect{model: model, clock: source.NewOutlineClock(model), raster: raster, banks: make(map[string]source.Animation)}
-	raster.shadowShift[1] = 1
+	raster.material.ControlOffset[1] = 1
 	for _, name := range []string{"late-a", "late-b", "late-c", "late-d", "late-e", "late-f"} {
 		e.banks[name], err = source.LoadAnimation(assets.Files, name)
 		if err != nil {
