@@ -1,7 +1,7 @@
 # Spaceballs: State of the Art Go
 
 Native Go/Ebitengine conversion of the supplied Amiga production, using
-**Demo Construction Kit v1.0.11**
+**Demo Construction Kit v1.0.13**
 
 Run the complete production with its recovered music:
 
