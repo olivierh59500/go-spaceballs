@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"log"
 	"os"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	kit "github.com/olivierh59500/democonstructionkit"
@@ -31,6 +32,7 @@ type report struct {
 	Rate    int      `json:"ticks_per_second"`
 	Frames  int      `json:"drawn_frames"`
 	Samples []sample `json:"samples"`
+	Mode    string   `json:"mode,omitempty"`
 }
 
 type probe struct {
@@ -41,6 +43,10 @@ type probe struct {
 	report               report
 	done                 bool
 	err                  error
+	production           *demo.ProductionGame
+	full                 bool
+	lastUnit             string
+	unitStart            int
 }
 
 func (*probe) Layout(int, int) (int, int) { return demo.Width, demo.Height }
@@ -60,6 +66,10 @@ func (p *probe) Draw(dst *ebiten.Image) {
 		p.surface = render.NewSurface(demo.Width, demo.Height)
 		p.pixels = make([]byte, demo.Width*demo.Height*4)
 		p.report.Width, p.report.Height, p.report.Rate = demo.Width, demo.Height, demo.FPS
+	}
+	if p.full {
+		p.drawProduction(dst)
+		return
 	}
 	// Every source update is followed by a draw, including unsampled frames.
 	// This keeps retained-mask history identical to normal playback.
@@ -99,7 +109,42 @@ func (p *probe) Draw(dst *ebiten.Image) {
 	dst.DrawImage(p.surface, nil)
 }
 
+func (p *probe) drawProduction(dst *ebiten.Image) {
+	if p.production == nil {
+		p.production, p.err = demo.NewProductionGame(false, 0, 0)
+		if p.err != nil {
+			p.done = true
+			return
+		}
+		p.report.Mode = "production"
+	}
+	for step := 0; step < 12 && !p.done; step++ {
+		if p.report.Frames > 0 {
+			if p.err = p.production.Update(); p.err != nil {
+				p.done = true
+				return
+			}
+		}
+		unit, tick := p.production.Position()
+		if unit != p.lastUnit {
+			p.lastUnit, p.unitStart = unit, tick
+		}
+		p.production.Draw(p.surface)
+		p.report.Frames++
+		if tick-p.unitStart < 24 || tick%23 == 0 || tick >= p.duration-3 {
+			p.surface.ReadPixels(p.pixels)
+			digest := sha256.Sum256(p.pixels)
+			p.report.Samples = append(p.report.Samples, sample{Bank: unit, Tick: tick, SHA256: hex.EncodeToString(digest[:])})
+		}
+		p.done = tick >= p.duration
+	}
+	dst.DrawImage(p.surface, nil)
+}
+
 func (p *probe) Close() {
+	if p.production != nil {
+		p.production.Close()
+	}
 	if p.effect != nil {
 		kit.Close(p.effect)
 	}
@@ -110,11 +155,20 @@ func (p *probe) Close() {
 
 func main() {
 	output := flag.String("output", "", "write frame fingerprint report as JSON")
+	production := flag.Bool("production", false, "fingerprint the complete director including all pages, fades and handoffs")
 	flag.Parse()
 	if *output == "" {
 		log.Fatal("-output is required")
 	}
-	p := &probe{}
+	p := &probe{full: *production}
+	if p.full {
+		program, err := demo.NewProgram(false)
+		if err != nil {
+			log.Fatal(err)
+		}
+		p.duration = int(program.Duration()/time.Second)*demo.FPS + demo.FPS
+		program.Close()
+	}
 	defer p.Close()
 	ebiten.SetWindowSize(demo.Width, demo.Height)
 	ebiten.SetWindowTitle("Spaceballs / frame verification")
