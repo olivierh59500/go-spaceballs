@@ -12,6 +12,33 @@ GOWORK=off go run .
 Escape exits. The final page remains stationary. `-silent`, `-start`, `-ticks`
 and `-capture` support native validation. Both music formats are selected by DCK.
 
+<!-- Project showcase -->
+## Screenshots
+
+[![Animated dancer silhouettes over shifting color blocks](docs/media/screenshot-1.png)](docs/media/screenshot-1.png)
+
+Animated dancer silhouettes over shifting color blocks.
+
+[![Bright layered dancer trails over a deep blue texture](docs/media/screenshot-2.png)](docs/media/screenshot-2.png)
+
+Bright layered dancer trails over a deep blue texture.
+
+[![Striped dancers over a twisting monochrome pattern](docs/media/screenshot-3.png)](docs/media/screenshot-3.png)
+
+Striped dancers over a twisting monochrome pattern.
+
+## Video
+
+[![Animated preview of Spaceballs: State of the Art Go](docs/media/preview.gif)](https://github.com/olivierh59500/go-spaceballs/raw/refs/heads/main/docs/media/preview.mp4)
+
+**[Watch or download the 24-second MP4 preview with sound](https://github.com/olivierh59500/go-spaceballs/raw/refs/heads/main/docs/media/preview.mp4)**
+
+This short showcase combines selected passages from the Go production.
+
+The animated image is silent; the MP4 includes the soundtrack.
+
+<!-- End project showcase -->
+
 ## Conversion scope
 
 - Recover the original disk payloads, soundtrack, artwork and animated shapes.
